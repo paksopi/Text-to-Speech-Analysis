@@ -1,40 +1,21 @@
 """Manifest of every generated wav in this repo: path, language, expected text, model."""
 
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import MENTOR_SENTENCES, SHORT_SENTENCES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 AUDIO_DIR = ROOT / "results" / "audio"
 COMPARISON_DIR = ROOT / "results" / "comparison"
 
-TEXT_EN_SHORT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
-TEXT_ID_SHORT = (
-    "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting "
-    "untuk fotosintesis, tapi mari kita berpikir lebih dalam."
-)
+TEXT_EN_SHORT = SHORT_SENTENCES["en"]
+TEXT_ID_SHORT = SHORT_SENTENCES["id"]
 
-TEXT_EN_MENTOR = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis — but let's think a little deeper. Think of a plant as a little "
-    "factory — light is the energy that comes in. Now, what do you think a plant does "
-    "with that energy? What do plants need to survive and grow?"
-)
-TEXT_BM_MENTOR = (
-    "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting "
-    "untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan "
-    "tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, "
-    "apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan "
-    "perlukan untuk hidup dan membesar?"
-)
-TEXT_ID_MENTOR = (
-    "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting "
-    "untuk fotosintesis — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan "
-    "sebagai sebuah pabrik kecil — cahaya adalah energi yang masuk. Sekarang, menurutmu "
-    "apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk "
-    "bertahan hidup dan tumbuh?"
-)
+TEXT_EN_MENTOR = MENTOR_SENTENCES["en"]
+TEXT_BM_MENTOR = MENTOR_SENTENCES["bm"]
+TEXT_ID_MENTOR = MENTOR_SENTENCES["id"]
 
 # (path, model, lang_code, expected_text, is_cloned, anchor_path_or_None)
 MANIFEST = [

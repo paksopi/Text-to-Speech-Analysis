@@ -1,12 +1,15 @@
 """Peak VRAM measurement for StyleTTS2 during a single generation call."""
 
+import sys
+from pathlib import Path
+
 import torch
 from styletts2.tts import StyleTTS2
 
-TEXT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
+
+TEXT = SHORT_SENTENCES["en"]
 
 
 def main():

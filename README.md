@@ -133,6 +133,21 @@ python src/eval/run_prosody_analysis.py      # F0/pacing delta: control instruct
 python src/eval/measure_vram_voxcpm2.py      # peak VRAM + param count (one script per model)
 ```
 
+## Development
+
+`src/text_data.py` is the single source of truth for every test sentence used across the
+generation, comparison, and eval scripts — edit it there, not in the individual scripts.
+
+Lint and unit tests are lightweight (no GPU or model downloads required) and run in CI on every
+push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+```bash
+pip install -e ".[dev]"
+ruff check .            # lint
+ruff format --check .   # formatting
+pytest                  # unit tests (tests/)
+```
+
 ## Model attribution & licensing
 
 Model weights are downloaded on first run (via Hugging Face) and are not redistributed in this repo.
@@ -169,11 +184,4 @@ check before any commercial use:
 - [ElevenLabs](https://elevenlabs.io/) — commercial TTS API benchmarked against in the infrastructure proposal
 - [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html) — PyTorch's JIT graph compiler, evaluated in the PoC rerun
 - [Triton](https://github.com/triton-lang/triton) / [triton-windows](https://github.com/woct0rdho/triton-windows) — the compiler backend `torch.compile` depends on for CUDA kernels; Windows builds are versioned separately from upstream Triton
-- [FFmpeg](https://ffmpeg.org/) — required for voice-cloning reference-audio decoding
-
-### Evaluation methods and metrics
-
-- [Whisper (OpenAI)](https://github.com/openai/whisper) — used to transcribe generated audio back to text for Word Error Rate scoring
-- [jiwer](https://github.com/jitsi/jiwer) — WER computation library
-- [Resemblyzer](https://github.com/resemble-ai/Resemblyzer) — speaker-embedding model used for voice-cloning similarity scoring
-- [librosa](https://librosa.org/) — used for F0/pitch extraction and pause detection in the prosody-delta analysis
+- [FFmpeg](https://ffmpeg.org/) — required for voice-cloning re

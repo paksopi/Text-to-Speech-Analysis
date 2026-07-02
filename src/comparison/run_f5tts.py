@@ -6,24 +6,22 @@ EN baseline as the reference, matching the anchor-clip pattern used elsewhere
 in this project.
 """
 
+import sys
 import time
 from pathlib import Path
 
 from f5_tts.api import F5TTS
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import F5TTS_REF_TEXT, SHORT_SENTENCES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "f5tts_timings.tsv"
 ANCHOR = ROOT / "results" / "audio" / "en_baseline.wav"
 
-REF_TEXT = (
-    "Every skill you build today becomes the foundation for tomorrow's confidence, "
-    "so keep practicing with patience and curiosity."
-)
-GEN_TEXT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+REF_TEXT = F5TTS_REF_TEXT
+GEN_TEXT = SHORT_SENTENCES["en"]
 
 
 def main():

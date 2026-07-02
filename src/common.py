@@ -3,6 +3,8 @@ from pathlib import Path
 
 import soundfile as sf
 
+from text_data import MENTOR_SENTENCES
+
 ROOT = Path(__file__).resolve().parent.parent
 AUDIO_DIR = ROOT / "results" / "audio"
 LOG_DIR = ROOT / "results" / "logs"
@@ -14,22 +16,9 @@ CONTROL = (
     "unhurried pace."
 )
 
-TEST_SENTENCES = {
-    "en": "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis — but let's think a little deeper. Think of a plant as a little "
-    "factory — light is the energy that comes in. Now, what do you think a plant does "
-    "with that energy? What do plants need to survive and grow?",
-    "bm": "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting "
-    "untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan "
-    "tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, "
-    "apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan "
-    "perlukan untuk hidup dan membesar?",
-    "id": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting "
-    "untuk fotosintesis — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan "
-    "sebagai sebuah pabrik kecil — cahaya adalah energi yang masuk. Sekarang, menurutmu "
-    "apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk "
-    "bertahan hidup dan tumbuh?",
-}
+# Kept as TEST_SENTENCES here for backwards compatibility with existing
+# imports; the actual sentences live in text_data.py so they're defined once.
+TEST_SENTENCES = MENTOR_SENTENCES
 
 
 def controlled_text(text: str, control: str = CONTROL) -> str:

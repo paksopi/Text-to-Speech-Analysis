@@ -1,5 +1,6 @@
 """ChatTTS smoke test: EN + ZH only (no BM/ID support per model docs)."""
 
+import sys
 import time
 from pathlib import Path
 
@@ -7,14 +8,14 @@ import ChatTTS
 import soundfile as sf
 import torch
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "chattts_timings.tsv"
 
-TEXT_EN = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+TEXT_EN = SHORT_SENTENCES["en"]
 
 
 def main():

@@ -1,18 +1,19 @@
 """StyleTTS2 smoke test: EN only (English-only phonemizer, no BM/ID support)."""
 
+import sys
 import time
 from pathlib import Path
 
 from styletts2.tts import StyleTTS2
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "styletts2_timings.tsv"
 
-TEXT_EN = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+TEXT_EN = SHORT_SENTENCES["en"]
 
 
 def main():

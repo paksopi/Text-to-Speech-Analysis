@@ -1,17 +1,17 @@
 """Peak VRAM measurement for Parler-TTS Mini during a single generation call."""
 
+import sys
+from pathlib import Path
+
 import torch
 from parler_tts import ParlerTTSForConditionalGeneration
 from transformers import AutoTokenizer
 
-TEXT_EN = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
-DESCRIPTION = (
-    "A calm, articulate female speaker delivers her speech at a moderate pace "
-    "with clear audio quality."
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import PARLER_DESCRIPTION, SHORT_SENTENCES  # noqa: E402
+
+TEXT_EN = SHORT_SENTENCES["en"]
+DESCRIPTION = PARLER_DESCRIPTION
 
 
 def main():

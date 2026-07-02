@@ -1,5 +1,6 @@
 """Parler-TTS Mini smoke test: EN only (model card lists English-only training data)."""
 
+import sys
 import time
 from pathlib import Path
 
@@ -8,18 +9,15 @@ import torch
 from parler_tts import ParlerTTSForConditionalGeneration
 from transformers import AutoTokenizer
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import PARLER_DESCRIPTION, SHORT_SENTENCES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "parler_timings.tsv"
 
-TEXT_EN = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
-DESCRIPTION = (
-    "A calm, articulate female speaker delivers her speech at a moderate pace "
-    "with clear audio quality."
-)
+TEXT_EN = SHORT_SENTENCES["en"]
+DESCRIPTION = PARLER_DESCRIPTION
 
 
 def main():

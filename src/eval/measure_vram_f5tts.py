@@ -1,21 +1,19 @@
 """Peak VRAM measurement for F5-TTS during a single generation call."""
 
+import sys
 from pathlib import Path
 
 import torch
 from f5_tts.api import F5TTS
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import F5TTS_REF_TEXT, SHORT_SENTENCES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 ANCHOR = ROOT / "results" / "audio" / "en_baseline.wav"
 
-REF_TEXT = (
-    "Every skill you build today becomes the foundation for tomorrow's confidence, "
-    "so keep practicing with patience and curiosity."
-)
-GEN_TEXT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+REF_TEXT = F5TTS_REF_TEXT
+GEN_TEXT = SHORT_SENTENCES["en"]
 
 
 def main():

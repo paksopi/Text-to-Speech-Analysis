@@ -4,21 +4,22 @@ Runs a plain EN generation and an EN voice-clone using the VoxCPM2 en_baseline.w
 as the reference clip, for an apples-to-apples anchor comparison.
 """
 
+import sys
 import time
 from pathlib import Path
 
 import torch
 from TTS.api import TTS
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "coqui_xtts_timings.tsv"
 ANCHOR = ROOT / "results" / "audio" / "en_baseline.wav"
 
-TEXT_EN = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+TEXT_EN = SHORT_SENTENCES["en"]
 
 
 def main():

@@ -7,11 +7,9 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common import controlled_text, load_model  # noqa: E402
+from text_data import SHORT_SENTENCES  # noqa: E402
 
-TEXT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+TEXT = SHORT_SENTENCES["en"]
 
 
 def main():

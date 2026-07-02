@@ -1,0 +1,34 @@
+name: CI
+
+# Lint + fast unit tests only. The actual TTS scripts need a CUDA GPU, model
+# downloads, and per-model virtualenvs (see README) so they intentionally do
+# NOT run here -- this workflow only guards the plain-Python glue code
+# (src/common.py, src/text_data.py, src/eval/manifest.py) against regressions.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dev/test dependencies
+        run: pip install ruff pytest soundfile numpy
+
+      - name: Ruff check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Run tests
+        run: pytest -v

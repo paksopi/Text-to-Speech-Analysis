@@ -1,12 +1,15 @@
 """Peak VRAM measurement for ChatTTS during a single generation call."""
 
+import sys
+from pathlib import Path
+
 import torch
 import ChatTTS
 
-TEXT = (
-    "Great, I love that question! So we know that sunlight is important for "
-    "photosynthesis, but let's think a little deeper."
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
+
+TEXT = SHORT_SENTENCES["en"]
 
 
 def main():

@@ -1,10 +1,14 @@
 """Piper TTS smoke test: EN + ID (no Malay voice available in rhasspy/piper-voices)."""
 
+import sys
 import time
 import wave
 from pathlib import Path
 
 from piper import PiperVoice
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from text_data import SHORT_SENTENCES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 VOICE_DIR = ROOT / ".cache" / "piper_voices"
@@ -12,16 +16,8 @@ OUT_DIR = ROOT / "results" / "comparison"
 LOG_PATH = OUT_DIR / "piper_timings.tsv"
 
 TESTS = {
-    "en": (
-        "en_US-amy-medium.onnx",
-        "Great, I love that question! So we know that sunlight is important for "
-        "photosynthesis, but let's think a little deeper.",
-    ),
-    "id": (
-        "id_ID-news_tts-medium.onnx",
-        "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting "
-        "untuk fotosintesis, tapi mari kita berpikir lebih dalam.",
-    ),
+    "en": ("en_US-amy-medium.onnx", SHORT_SENTENCES["en"]),
+    "id": ("id_ID-news_tts-medium.onnx", SHORT_SENTENCES["id"]),
 }
 
 
