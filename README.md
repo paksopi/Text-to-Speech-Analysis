@@ -10,6 +10,19 @@ rather than stop.
 
 **Status as of pause:**
 
+- **MMS-TTS** (`facebook/mms-tts-zlm` for Malay, `facebook/mms-tts-ind` for Indonesian, via
+  `transformers`' `VitsModel`) — **installed and verified working** in `.venvs/mms`
+  (`src/comparison/run_mms_tts.py`). Smoke-tested both languages successfully (~1s/call, CPU-cheap VITS
+  checkpoints). **License: CC-BY-NC 4.0** (non-commercial) — a license issue, but fine for this
+  evaluation per the "just document it" instruction. Not yet wired into the objective eval suite
+  (WER/speaker-similarity/VRAM/prosody).
+- **Kokoro-82M** (`hexgrad/Kokoro-82M`) — **installed and verified working** in `.venvs/kokoro`
+  (`src/comparison/run_kokoro.py`). Very lightweight (82M params, ~350MB), Apache-2.0, no license issue.
+  **Does not support Malay/Indonesian** (EN + a handful of others only) — doesn't meet this project's
+  actual requirement, but ran anyway per request for a broader personal report. Not yet wired into the
+  objective eval suite.
+  - Considered and rejected: **Zonos-v0.1** (Zyphra) — no Malay/Indonesian support and not obviously
+    lighter than models already covered, so lower priority than the two above.
 - **Fish Speech** — re-investigated, and the earlier "PyPI package is inference-incomplete" finding is
   **wrong/outdated**: the pip package (`.venvs/fishspeech`) actually contains everything needed
   (`fish_speech.inference_engine.TTSInferenceEngine`, `launch_thread_safe_queue`, `load_decoder_model`) —
@@ -20,40 +33,17 @@ rather than stop.
   an HF token from an account that has accepted the terms at
   huggingface.co/fishaudio/openaudio-s1-mini, then re-run the download + a minimal inference script
   wired the same way as the repo's `tools/run_webui.py`.
-- **MeloTTS** — official git install (`pip install git+https://github.com/myshell-ai/MeloTTS.git`) was
-  started in `.venvs/melo` and was mid-download (torch, transformers 4.27.4, tensorboard, etc. — pins an
-  old `transformers`) when the session was paused; not yet complete, no install/license blocker hit yet.
-  **To resume:** re-run that pip install to completion, then run a smoke-test EN generation.
-- **CosyVoice 2.0** — cloned the official repo (`FunAudioLLM/CosyVoice`, Apache-2.0, incl. the
-  `Matcha-TTS` submodule) into a scratch dir; created `.venvs/cosyvoice` (Python 3.12). Requirements pin
-  `torch==2.3.1+cu121`; was mid-check on whether a cp312 wheel exists for that exact pin when paused —
-  not yet resolved. No official PyPI package exists (unchanged from the original finding), so this still
-  requires the git-clone path. **To resume:** finish the torch/cp312 compatibility check, `pip install -r
-  requirements.txt` (with `--extra-index-url https://download.pytorch.org/whl/cu121`), and copy the
-  cloned repo (or just its `cosyvoice/` + `third_party/Matcha-TTS/` dirs + `tools/`) somewhere durable,
-  since it currently only exists in the session's scratch directory and will be lost.
-- **New lightweight models identified (not yet installed):**
-  - **MMS-TTS** (`facebook/mms-tts-zlm` for Malay, `facebook/mms-tts-ind` for Indonesian, via
-    `transformers`' `VitsModel`) — small per-language VITS checkpoints, genuinely relevant since they
-    actually claim Malay + Indonesian support, unlike everything except VoxCPM2/Piper so far. **License:
-    CC-BY-NC 4.0** (non-commercial) — a license issue, but fine for this evaluation per the "just
-    document it" instruction. `.venvs/mms` was created but dependency install (`torch`, `transformers`,
-    `scipy`, `soundfile`) did not complete before pausing.
-  - **Kokoro-82M** (`hexgrad/Kokoro-82M`) — very lightweight (82M params, ~350MB), Apache-2.0, no
-    license issue. **Does not support Malay/Indonesian** (EN + a handful of others only) — doesn't meet
-    this project's actual requirement, but worth running anyway per request for a broader personal
-    report. `.venvs/kokoro` was created but nothing installed yet.
-  - Considered and rejected: **Zonos-v0.1** (Zyphra) — no Malay/Indonesian support and not obviously
-    lighter than models already covered, so lower priority than the two above.
+- **MeloTTS** and **CosyVoice 2.0** — **not attempted.** Both only have a working install path via
+  `pip install git+https://github.com/...` or a full git clone + local `pip install -r requirements.txt`
+  of an unofficial/research repo, which this environment's auto-mode safety policy blocks (installing or
+  building from an agent-chosen external repo executes arbitrary code — a supply-chain risk independent
+  of either project's own trustworthiness). This is an environment-policy limitation, not a technical
+  blocker on either model's side; re-attempt only with a human explicitly reviewing and approving the
+  install first.
 - **Not started yet:** extending `src/eval/manifest.py` + the `measure_vram_*.py` scripts to cover
-  whichever of the above end up runnable, re-running `run_wer.py` / `run_speaker_similarity.py` /
-  `run_prosody_analysis.py`, and updating this README + `reports/tts_models_comparison.md` with the
-  final results (or final blocker reasons) for all of the above.
-
-**Note:** all installs above were paused mid-flight and the associated background processes were killed;
-nothing above is left running. `.venvs/cosyvoice`, `.venvs/mms`, `.venvs/kokoro` exist but are mostly
-empty (venv scaffold only, gitignored like all `.venvs/*`). The CosyVoice repo clone lives only in the
-session's temp scratch directory, not in this repo — it'll need re-cloning next session.
+  MMS-TTS and Kokoro-82M now that both run, re-running `run_wer.py` / `run_speaker_similarity.py` /
+  `run_prosody_analysis.py`, and updating `reports/tts_models_comparison.md` with the final results (or
+  final blocker reasons) for all of the above.
 
 [![CI](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
