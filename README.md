@@ -104,9 +104,41 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 ```
 
-Each model in `src/comparison/` was tested in its own isolated venv (`.venvs/<model>/`, gitignored) to
-avoid dependency conflicts between frameworks — there's no single shared `requirements.txt` for those;
-see the comparison report for each model's install notes.
+### Why so many venvs
+
+This repo uses **11 separate virtual environments**, all gitignored (`.venv/`, `.venvs/*/`) so none of
+them are committed — only `requirements.txt` and `src/eval/requirements-eval.txt` are checked in.
+They're split up because the 10 TTS models compared here (see [Why VoxCPM2](#why-voxcpm2)) come from
+unrelated frameworks with genuinely incompatible pinned dependencies, not out of carelessness:
+
+| Venv | Purpose |
+|---|---|
+| `.venv/` | Main project env — VoxCPM2 (`src/`), the model this repo builds on. `requirements.txt`. |
+| `.venvs/eval/` | Objective evaluation (`src/eval/`) — Whisper, Resemblyzer, librosa. `src/eval/requirements-eval.txt`. |
+| `.venvs/coqui/` | Coqui XTTSv2 (`src/comparison/run_coqui_xtts.py`) |
+| `.venvs/styletts2/` | StyleTTS2 — needs `torch==2.5.1` pinned, older than every other venv here, because its checkpoint predates PyTorch 2.6's `weights_only=True` default and fails to load on newer torch |
+| `.venvs/parler/` | Parler-TTS Mini |
+| `.venvs/chattts/` | ChatTTS |
+| `.venvs/f5tts/` | F5-TTS |
+| `.venvs/piper/` | Piper |
+| `.venvs/melo/` | MeloTTS install attempt (blocked — see comparison report) |
+| `.venvs/fishspeech/` | Fish Speech install attempt (blocked — see comparison report) |
+
+**Why not one shared venv:** each framework pins its own `torch`/`transformers`/`numpy` versions, and at
+least one (StyleTTS2, pinned to `torch==2.5.1`) directly conflicts with the `torch==2.6.0+cu124` this
+project's main `.venv` and most other comparison venvs use. Merging them would mean constantly
+downgrading/upgrading torch between runs, or picking one version and having some models simply fail to
+load — isolation is the actual fix here, not a workaround to clean up later. There's no single shared
+`requirements.txt` for `src/comparison/`; each model's exact install steps and version pins are documented
+per-model in [`reports/tts_models_comparison.md`](reports/tts_models_comparison.md#original-research-full-model-catalog).
+
+To recreate any of them:
+
+```bash
+py -3.12 -m venv .venvs/<name>
+.venvs\<name>\Scripts\activate      # Windows
+# then follow that model's install notes in the comparison report
+```
 
 ## Usage
 
