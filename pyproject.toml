@@ -8,4 +8,20 @@ version = "0.1.0"
 requires-python = ">=3.10,<3.13"
 
 [project.optional-dependencies]
-dev = ["ruff>=0.
+dev = ["ruff>=0.6", "pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = [".venv", ".venvs", ".cache"]
+
+[tool.ruff.lint]
+# E402 (import not at top) is expected in scripts that insert `src` onto
+# sys.path before importing sibling modules like `common`/`text_data`.
+extend-ignore = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

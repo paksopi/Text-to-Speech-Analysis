@@ -184,4 +184,11 @@ check before any commercial use:
 - [ElevenLabs](https://elevenlabs.io/) — commercial TTS API benchmarked against in the infrastructure proposal
 - [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html) — PyTorch's JIT graph compiler, evaluated in the PoC rerun
 - [Triton](https://github.com/triton-lang/triton) / [triton-windows](https://github.com/woct0rdho/triton-windows) — the compiler backend `torch.compile` depends on for CUDA kernels; Windows builds are versioned separately from upstream Triton
-- [FFmpeg](https://ffmpeg.org/) — required for voice-cloning re
+- [FFmpeg](https://ffmpeg.org/) — required for voice-cloning reference-audio decoding
+
+### Evaluation methods and metrics
+
+- [Whisper (OpenAI)](https://github.com/openai/whisper) — used to transcribe generated audio back to text for Word Error Rate scoring
+- [jiwer](https://github.com/jitsi/jiwer) — WER computation library
+- [Resemblyzer](https://github.com/resemble-ai/Resemblyzer) — speaker-embedding model used for voice-cloning similarity scoring
+- [librosa](https://librosa.org/) — used for F0/pitch extraction and pause detection in the prosody-delta analysis
