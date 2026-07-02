@@ -5,6 +5,23 @@ an emotion-controllable text-to-speech model, for Malay (BM), Indonesian (ID), a
 synthesis with zero-shot voice cloning.
 
 Full infrastructure/feasibility writeup: [`reports/VoxCPM2_PoC_Infrastructure_Proposal.md`](reports/VoxCPM2_PoC_Infrastructure_Proposal.md).
+Rerun results after the original PoC was lost and rebuilt: [`reports/poc_rerun_results.md`](reports/poc_rerun_results.md).
+
+## Results
+
+Rebuilt and reran on the same RTX 3050 Laptop (6GB VRAM) hardware as the original proposal. All six test
+generations succeeded — EN/BM/ID baseline (default voice) and EN/BM/ID cloned from a single anchor clip
+(the EN baseline output, reused as the zero-shot voice-cloning reference across all three languages).
+
+| Language | Baseline time | Cloned time |
+|---|---|---|
+| EN | 20.45s | 56.05s |
+| BM | 18.97s | 45.59s |
+| ID | 29.13s | 49.49s |
+
+`torch.compile`/Triton was installed and requested but VoxCPM2 disabled it internally at load time due
+to a Triton API mismatch (`AttrsDescriptor` import failure) — generation ran in eager mode. See the rerun
+report for the full breakdown and open items.
 
 ## Layout
 
