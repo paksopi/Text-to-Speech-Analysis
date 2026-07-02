@@ -22,7 +22,7 @@ def main():
     tts.tts(text=TEXT, speaker=tts.speakers[0] if tts.speakers else None, language="en")
 
     peak_gb = torch.cuda.max_memory_allocated() / 1e9
-    print(f"model=coqui_xtts params={n_params/1e6:.1f}M peak_vram_gb={peak_gb:.3f}")
+    print(f"model=coqui_xtts params={n_params / 1e6:.1f}M peak_vram_gb={peak_gb:.3f}")
 
 
 if __name__ == "__main__":

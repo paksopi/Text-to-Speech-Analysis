@@ -37,9 +37,7 @@ def load_model(optimize: bool = True, load_denoiser: bool = False):
         if optimize:
             print(f"[warn] optimize=True failed ({exc!r}); retrying with optimize=False")
             return (
-                VoxCPM.from_pretrained(
-                    "openbmb/VoxCPM2", load_denoiser=load_denoiser, optimize=False
-                ),
+                VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=load_denoiser, optimize=False),
                 False,
             )
         raise

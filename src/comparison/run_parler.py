@@ -24,9 +24,7 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = ParlerTTSForConditionalGeneration.from_pretrained(
-        "parler-tts/parler-tts-mini-v1"
-    ).to(device)
+    model = ParlerTTSForConditionalGeneration.from_pretrained("parler-tts/parler-tts-mini-v1").to(device)
     tokenizer = AutoTokenizer.from_pretrained("parler-tts/parler-tts-mini-v1")
 
     input_ids = tokenizer(DESCRIPTION, return_tensors="pt").input_ids.to(device)

@@ -37,9 +37,7 @@ def analyze(path: Path) -> dict:
     y, sr = librosa.load(path, sr=None)
     duration = len(y) / sr
 
-    f0, voiced_flag, _ = librosa.pyin(
-        y, fmin=librosa.note_to_hz("C2"), fmax=librosa.note_to_hz("C7"), sr=sr
-    )
+    f0, voiced_flag, _ = librosa.pyin(y, fmin=librosa.note_to_hz("C2"), fmax=librosa.note_to_hz("C7"), sr=sr)
     f0_voiced = f0[voiced_flag]
 
     intervals = librosa.effects.split(y, top_db=30)

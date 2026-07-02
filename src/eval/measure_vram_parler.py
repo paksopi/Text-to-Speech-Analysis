@@ -18,9 +18,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.cuda.reset_peak_memory_stats()
 
-    model = ParlerTTSForConditionalGeneration.from_pretrained(
-        "parler-tts/parler-tts-mini-v1"
-    ).to(device)
+    model = ParlerTTSForConditionalGeneration.from_pretrained("parler-tts/parler-tts-mini-v1").to(device)
     tokenizer = AutoTokenizer.from_pretrained("parler-tts/parler-tts-mini-v1")
     n_params = sum(p.numel() for p in model.parameters())
 
@@ -31,7 +29,7 @@ def main():
     model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
 
     peak_gb = torch.cuda.max_memory_allocated() / 1e9
-    print(f"model=parler params={n_params/1e6:.1f}M peak_vram_gb={peak_gb:.3f}")
+    print(f"model=parler params={n_params / 1e6:.1f}M peak_vram_gb={peak_gb:.3f}")
 
 
 if __name__ == "__main__":

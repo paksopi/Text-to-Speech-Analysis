@@ -60,6 +60,5 @@ F5TTS_REF_TEXT = (
 # reference clip (Parler conditions generation on a text description of the
 # voice, not on audio).
 PARLER_DESCRIPTION = (
-    "A calm, articulate female speaker delivers her speech at a moderate pace "
-    "with clear audio quality."
+    "A calm, articulate female speaker delivers her speech at a moderate pace with clear audio quality."
 )
