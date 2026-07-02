@@ -1,0 +1,37 @@
+[
+  {
+    "file": "en_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "en",
+    "anchor": "en_baseline.wav",
+    "cosine_similarity": 0.9361
+  },
+  {
+    "file": "bm_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "ms",
+    "anchor": "en_baseline.wav",
+    "cosine_similarity": 0.8532
+  },
+  {
+    "file": "id_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "id",
+    "anchor": "en_baseline.wav",
+    "cosine_similarity": 0.8496
+  },
+  {
+    "file": "coqui_xtts_en_cloned.wav",
+    "model": "coqui_xtts",
+    "lang": "en",
+    "anchor": "en_baseline.wav",
+    "cosine_similarity": 0.9448
+  },
+  {
+    "file": "f5tts_en.wav",
+    "model": "f5tts",
+    "lang": "en",
+    "anchor": "en_baseline.wav",
+    "cosine_similarity": 0.9496
+  }
+]

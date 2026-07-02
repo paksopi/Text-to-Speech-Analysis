@@ -37,6 +37,18 @@ comparison report.
 | Fish Speech | — | ❌ | ❌ | — | — | Blocked (PyPI package inference-incomplete) |
 | CosyVoice 2.0 | — | ❌ | ❌ | — | — | Skipped (no official PyPI package) |
 
+### Objective evaluation, not just language support
+
+Four automated metrics back up the table above with numbers instead of vibes — full methodology and
+results in the [comparison report's Objective Evaluation section](reports/tts_models_comparison.md#objective-evaluation):
+
+| Metric | What it measures | VoxCPM2 result |
+|---|---|---|
+| **WER** (Whisper transcription vs. requested text) | Does the model say the right words | **0.0000** across all 6 EN/BM/ID generations — vs. 0.10-0.25 on 3 of the 6 alternatives tested |
+| **Speaker similarity** (Resemblyzer cosine similarity) | Cloning fidelity vs. the anchor clip | 0.94 same-language (EN), 0.85 cross-lingual (BM/ID) — quantifies the "accent bleed-through" the original proposal only flagged qualitatively |
+| **VRAM / parameter count** | Light vs. heavy, measured not estimated | **2,384M params, 5.76 GB peak VRAM** — the heaviest model tested, confirming it runs at the edge of this hardware's 6GB budget |
+| **Prosody delta** (F0/pacing with vs. without the control instruction) | Does emotion control actually do anything | Pitch variance nearly halves (39 vs. 68 Hz std), speaking rate drops ~20% — measurably works for tone/pacing; doesn't reliably increase pause frequency on the one sentence tested |
+
 ## VoxCPM2 PoC Results
 
 Rebuilt and reran on the same RTX 3050 Laptop (6GB VRAM) hardware as the original proposal, across two
@@ -74,8 +86,10 @@ building a real serving loop. Full breakdown and open items in the rerun report.
 |---|---|
 | `src/` | VoxCPM2 generation scripts (baseline TTS + voice-cloning tests) |
 | `src/comparison/` | One-off smoke-test scripts for each of the 9 alternative models |
-| `results/audio/` | VoxCPM2 `.wav` test outputs (baseline and cloned-voice, per language) |
+| `src/eval/` | Objective evaluation: WER, speaker-similarity, VRAM/model-size profiling, prosody analysis |
+| `results/audio/` | VoxCPM2 `.wav` test outputs (baseline, cloned-voice, and uncontrolled per language) |
 | `results/comparison/` | `.wav` outputs and timing logs from the 9-model comparison |
+| `results/eval/` | JSON output from the objective evaluation scripts |
 | `results/logs/` | Per-call generation timing logs for VoxCPM2 |
 | `reports/` | Written analysis — the model comparison, the original infra proposal, and the PoC rerun writeup |
 
@@ -108,6 +122,15 @@ python src/comparison/run_styletts2.py     # StyleTTS2 (EN)
 python src/comparison/run_parler.py        # Parler-TTS Mini (EN)
 python src/comparison/run_chattts.py       # ChatTTS (EN)
 python src/comparison/run_f5tts.py         # F5-TTS (EN, cloned)
+```
+
+Objective evaluation (run from a dedicated `.venvs/eval/` — see the comparison report for setup):
+
+```bash
+python src/eval/run_wer.py                   # Whisper-based WER for every generated clip
+python src/eval/run_speaker_similarity.py    # Resemblyzer cosine similarity for every cloned clip
+python src/eval/run_prosody_analysis.py      # F0/pacing delta: control instruction vs. none
+python src/eval/measure_vram_voxcpm2.py      # peak VRAM + param count (one script per model)
 ```
 
 ## Model attribution & licensing
@@ -147,3 +170,10 @@ check before any commercial use:
 - [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html) — PyTorch's JIT graph compiler, evaluated in the PoC rerun
 - [Triton](https://github.com/triton-lang/triton) / [triton-windows](https://github.com/woct0rdho/triton-windows) — the compiler backend `torch.compile` depends on for CUDA kernels; Windows builds are versioned separately from upstream Triton
 - [FFmpeg](https://ffmpeg.org/) — required for voice-cloning reference-audio decoding
+
+### Evaluation methods and metrics
+
+- [Whisper (OpenAI)](https://github.com/openai/whisper) — used to transcribe generated audio back to text for Word Error Rate scoring
+- [jiwer](https://github.com/jitsi/jiwer) — WER computation library
+- [Resemblyzer](https://github.com/resemble-ai/Resemblyzer) — speaker-embedding model used for voice-cloning similarity scoring
+- [librosa](https://librosa.org/) — used for F0/pitch extraction and pause detection in the prosody-delta analysis

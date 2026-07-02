@@ -1,0 +1,128 @@
+[
+  {
+    "file": "en_baseline.wav",
+    "model": "voxcpm2",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis — but let's think a little deeper. Think of a plant as a little factory — light is the energy that comes in. Now, what do you think a plant does with that energy? What do plants need to survive and grow?",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper. Think of a plant as a little factory. Light is the energy that comes in. Now, what do you think a plant does with that energy? What do plants need to survive and grow?",
+    "wer": 0.0
+  },
+  {
+    "file": "bm_baseline.wav",
+    "model": "voxcpm2",
+    "lang": "ms",
+    "cloned": false,
+    "expected_text": "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "transcription": "Bagus, saya suka soalan itu. Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis, tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil. Cahaya ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "wer": 0.0
+  },
+  {
+    "file": "id_baseline.wav",
+    "model": "voxcpm2",
+    "lang": "id",
+    "cloned": false,
+    "expected_text": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan sebagai sebuah pabrik kecil — cahaya adalah energi yang masuk. Sekarang, menurutmu apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk bertahan hidup dan tumbuh?",
+    "transcription": "Bagus, aku suka pertanyaan itu. Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan sebagai sebuah pabrik kecil, cahaya adalah energi yang masuk. Sekarang menurutmu apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk bertahan hidup dan tumbuh?",
+    "wer": 0.0
+  },
+  {
+    "file": "en_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "en",
+    "cloned": true,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis — but let's think a little deeper. Think of a plant as a little factory — light is the energy that comes in. Now, what do you think a plant does with that energy? What do plants need to survive and grow?",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper. Think of a plant as a little factory. Light is the energy that comes in. Now, what do you think a plant does with that energy? What do plants need to survive and grow?",
+    "wer": 0.0
+  },
+  {
+    "file": "bm_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "ms",
+    "cloned": true,
+    "expected_text": "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "transcription": "Bagus, saya suka soalan itu. Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis, tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil, cahaya ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "wer": 0.0
+  },
+  {
+    "file": "id_cloned.wav",
+    "model": "voxcpm2",
+    "lang": "id",
+    "cloned": true,
+    "expected_text": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan sebagai sebuah pabrik kecil — cahaya adalah energi yang masuk. Sekarang, menurutmu apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk bertahan hidup dan tumbuh?",
+    "transcription": "Bagus, aku suka pertanyaan itu. Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan sebagai sebuah pabrik kecil, cahaya adalah energi yang masuk. Sekarang, menurutmu apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk bertahan hidup dan tumbuh?",
+    "wer": 0.0
+  },
+  {
+    "file": "piper_en.wav",
+    "model": "piper",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "wer": 0.0
+  },
+  {
+    "file": "piper_id.wav",
+    "model": "piper",
+    "lang": "id",
+    "cloned": false,
+    "expected_text": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam.",
+    "transcription": "Bagus, aku suka pertanyaan itu. Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam.",
+    "wer": 0.0
+  },
+  {
+    "file": "coqui_xtts_en.wav",
+    "model": "coqui_xtts",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great. I love that question. So we know that sunlight is important for photosynthesis. But let's think a little deeper.",
+    "wer": 0.0
+  },
+  {
+    "file": "coqui_xtts_en_cloned.wav",
+    "model": "coqui_xtts",
+    "lang": "en",
+    "cloned": true,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "wer": 0.0
+  },
+  {
+    "file": "styletts2_en.wav",
+    "model": "styletts2",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great eye love that question so we know that sun light is important for photosynthesis, but let's think a little deeper",
+    "wer": 0.15
+  },
+  {
+    "file": "parler_en.wav",
+    "model": "parler",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "wer": 0.0
+  },
+  {
+    "file": "chattts_en.wav",
+    "model": "chattts",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great. I love that question. So we know that sunlight is really important for photosynthesis. Let's think a little deeper.",
+    "wer": 0.1
+  },
+  {
+    "file": "f5tts_en.wav",
+    "model": "f5tts",
+    "lang": "en",
+    "cloned": true,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Lovely question. And so we know that sunlight is important for photosynthesis. But let's think a little deeper.",
+    "wer": 0.25
+  }
+]

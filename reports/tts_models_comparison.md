@@ -14,6 +14,17 @@ of major world languages that does not include BM or ID. This alone settles the 
 project — the comparison below is about documenting *why*, and about installation/ecosystem maturity as
 a secondary, genuinely useful finding.
 
+Beyond language support, four objective metrics were run against the generated audio (see [Objective
+Evaluation](#objective-evaluation) below): **Word Error Rate** (0.0% for VoxCPM2 across all six EN/BM/ID
+generations — every word transcribed correctly, vs. 10-25% WER on three of the six alternatives tested),
+**speaker-similarity** for voice cloning (0.85-0.94 cosine similarity, with cross-lingual clones scoring
+measurably lower than same-language ones — a real number behind the "accent bleed-through" concern the
+original proposal only flagged qualitatively), **VRAM/parameter-count profiling** (VoxCPM2 is honestly
+the heaviest model tested, 2.4B params / 5.76GB peak VRAM — the real cost of its BM/ID support), and a
+**prosody-delta analysis** of the emotion control instruction (it measurably flattens pitch variance and
+slows speaking rate as intended, though doesn't reliably increase pause frequency on the one sentence
+tested).
+
 ## Measured Results
 
 Test sentence (EN): *"Great, I love that question! So we know that sunlight is important for
@@ -36,6 +47,125 @@ Each model was installed in its own isolated venv (`.venvs/<model>/`) to avoid d
 
 (Coqui VITS, the lighter EN-only architecture bundled in the same `coqui-tts` package as XTTSv2, wasn't
 separately timed — XTTSv2 already establishes Coqui's EN-only ceiling and is the more capable of the two.)
+
+## Objective Evaluation
+
+Beyond "does it support the language," four automated metrics were run against the generated audio to
+put numbers behind quality claims instead of relying on listening tests. Scripts live in `src/eval/`,
+raw output in `results/eval/`. True MOS (human-rated naturalness) isn't automatable and isn't claimed
+here — these four are the objective proxies that are.
+
+### 1. Word Error Rate (WER) — does the model actually say the right words
+
+Each generated clip was transcribed back with Whisper (`medium`, language pinned per clip) and diffed
+against the text that was actually requested (lowercased, punctuation-stripped). This is the closest
+analogue to the language-detection repo's accuracy metric: 0.0 = every word transcribed matches exactly.
+
+| Model | Lang | File | WER |
+|---|---|---|---|
+| VoxCPM2 | en/ms/id | baseline ×3 | **0.0000** / **0.0000** / **0.0000** |
+| VoxCPM2 | en/ms/id | cloned ×3 | **0.0000** / **0.0000** / **0.0000** |
+| Piper | en/id | — | **0.0000** / **0.0000** |
+| Coqui XTTSv2 | en | default / cloned | **0.0000** / **0.0000** |
+| Parler-TTS Mini | en | — | **0.0000** |
+| ChatTTS | en | — | 0.1000 |
+| StyleTTS2 | en | — | 0.1500 |
+| F5-TTS | en (cloned) | — | 0.2500 |
+
+VoxCPM2 has zero transcription errors across all six EN/BM/ID generations, baseline and cloned alike —
+this is a real correctness signal, not just "it sounds fine": Whisper heard exactly the requested words
+in every one of VoxCPM2's outputs, in three languages. F5-TTS's 0.25 WER is the model's own known
+instability on short reference-cloned generations (it substituted "Lovely question" for "Great, I love
+that question" — a plausible-sounding but wrong transcription, not a minor slip). Full transcriptions in
+[`results/eval/wer_results.json`](../results/eval/wer_results.json).
+
+### 2. Speaker similarity — how good is the voice cloning, numerically
+
+Cosine similarity between a Resemblyzer speaker-embedding of the anchor clip and of each cloned output.
+1.0 = identical embedding, ~0.0 = unrelated voices; real same-speaker recordings under different
+conditions typically land around 0.75–0.95.
+
+| Model | Clone | vs. anchor | Similarity |
+|---|---|---|---|
+| VoxCPM2 | en_cloned (same language as anchor) | en_baseline | **0.9361** |
+| VoxCPM2 | bm_cloned (cross-lingual) | en_baseline | 0.8532 |
+| VoxCPM2 | id_cloned (cross-lingual) | en_baseline | 0.8496 |
+| Coqui XTTSv2 | en_cloned | en_baseline | 0.9448 |
+| F5-TTS | en_cloned | en_baseline | 0.9496 |
+
+This quantifies something the original proposal only flagged qualitatively (§6, "accent bleed-through...
+not yet formally assessed"): VoxCPM2's cross-lingual clones (BM/ID from an English anchor) score
+measurably lower on speaker similarity than its same-language EN clone (0.85 vs. 0.94) — real evidence,
+not just a suspicion, that cloning across languages costs some voice fidelity. It's still a strong score
+(comparable to XTTSv2's and F5-TTS's same-language numbers), just not as tight as same-language cloning.
+
+### 3. VRAM footprint & model size — light vs. heavy, measured
+
+Peak `torch.cuda.max_memory_allocated()` during one generation call, parameter counts where measurable,
+and on-disk checkpoint size (first-run download size). Piper is CPU-only (no VRAM used at all).
+
+| Model | Params (measured) | Peak VRAM (measured) | Checkpoint size (disk) |
+|---|---|---|---|
+| VoxCPM2 | **2,384M** | **5.76 GB** | 4.7 GB |
+| Parler-TTS Mini | 878M | 4.29 GB | 3.3 GB |
+| Coqui XTTSv2 | 467M | 2.01 GB | 1.8 GB |
+| StyleTTS2 | 70M+ (partial — decoder+predictor only) | 1.59 GB | 0.87 GB |
+| ChatTTS | not exposed by the library | 1.24 GB | 1.2 GB |
+| F5-TTS | not measured — see note | not measured — see note | 1.3 GB |
+| Piper | N/A (ONNX, CPU) | **0 GB (CPU-only)** | ~61 MB per voice |
+
+VoxCPM2 is, honestly, the heaviest model tested — 2.4B parameters and 5.76 GB peak VRAM, which matches
+the original proposal's measured "~5.8/6.0GB" almost exactly and confirms it's genuinely running at the
+edge of this hardware's 6GB budget, not comfortably inside it. This is the real cost behind VoxCPM2's
+BM/ID support and zero WER: it's a substantially larger model than any of the EN-only alternatives (5-30x
+more parameters than StyleTTS2 or Piper). F5-TTS's VRAM probe segfaulted intermittently on this hardware
+after a long session of loading/unloading many models back-to-back — not reproduced as a clean number,
+noted here rather than guessed at.
+
+### 4. Prosody delta — does the control instruction actually do anything
+
+VoxCPM2's emotion/style control works by prefixing the text with a natural-language instruction (e.g.
+*"A calm, articulate female voice... Deliberate pauses are used between ideas..."*). To check whether
+this measurably changes the output rather than being cosmetic, the same EN sentence was generated twice
+from the same model — once with that control instruction, once with none — and compared on pitch (F0)
+and pacing via `librosa`.
+
+| Metric | With control instruction | No control instruction |
+|---|---|---|
+| F0 (pitch) mean | 190.25 Hz | 202.85 Hz |
+| **F0 (pitch) std dev** | **39.29 Hz** | **67.76 Hz** |
+| Speaking rate | 3.64 words/sec | 4.56 words/sec |
+| Pause ratio | 0.157 | 0.229 |
+| Pause count | 34 | 39 |
+
+Two of the four metrics clearly support the instruction's intent: pitch variance nearly halves (39.29 vs.
+67.76 Hz std) — a flatter, calmer pitch contour, consistent with "calm" and "grounded" — and speaking
+rate drops about 20% (3.64 vs. 4.56 words/sec), consistent with "patient, unhurried pace." The pause
+ratio result is a genuine miss, though: despite the instruction explicitly asking for "deliberate pauses,"
+the *controlled* version actually paused *less* (15.7% vs. 22.9% of total duration) than the uncontrolled
+one. Reported as-is rather than only citing the two metrics that confirm the story — the control
+instruction measurably works for pitch and pacing, but doesn't reliably produce more/longer pauses on
+this one test sentence.
+
+## Model background — what each architecture actually is
+
+Not measured, but useful context for *why* the numbers above look the way they do:
+
+| Model | Architecture | Training language coverage |
+|---|---|---|
+| **VoxCPM2** | Tokenizer-free, context-aware TTS — an LLM-style backbone paired with a diffusion-based audio decoder, no discrete phoneme/token intermediate step | Explicitly multilingual, including Malay and Indonesian as first-class targets — this is *why* it's the only model here with real BM/ID support, not an accident of scale |
+| **Piper** | VITS (single-stage, GAN-based, non-autoregressive) — small, fast, one model per voice | Per-voice training data; community-contributed voices exist for ~30+ languages including Indonesian, but not Malay |
+| **Coqui XTTSv2** | GPT-2-style autoregressive text-to-codes model + HiFi-GAN vocoder | 17-language multilingual training set (major European + East Asian languages), no Southeast Asian languages beyond none |
+| **StyleTTS2** | Two-stage: acoustic text-to-style encoder + style-diffusion sampler + adversarial (GAN) decoder training | Trained on LJSpeech/LibriTTS — English only |
+| **Parler-TTS Mini** | Encoder-decoder transformer (MusicGen-derived architecture), conditioned on a natural-language *description* of the voice rather than a reference clip | Trained on English-only description/audio pairs |
+| **ChatTTS** | GPT-style autoregressive LLM backbone tuned for conversational/dialogue prosody | Bilingual EN/ZH training data |
+| **F5-TTS** | Diffusion Transformer (DiT), non-autoregressive flow-matching — generates the full mel-spectrogram in one denoising pass conditioned on a reference clip | English + Mandarin training data |
+
+The pattern across every non-VoxCPM2 model is the same: architecture choice (autoregressive vs.
+diffusion vs. flow-matching) affects speed and expressiveness, but *training-data language coverage* is
+what actually gates BM/ID support, and none of these were trained with Malay or Indonesian in scope.
+VoxCPM2's advantage isn't a smarter architecture — several of these alternatives are architecturally
+comparable or newer — it's that BM/ID were an explicit training target from the start.
 
 ## Why VoxCPM2 wins on the criterion that actually matters
 

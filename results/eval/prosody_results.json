@@ -1,0 +1,20 @@
+{
+  "controlled (calm/articulate/reflective instruction)": {
+    "file": "en_baseline.wav",
+    "duration_s": 17.6,
+    "f0_mean_hz": 190.25,
+    "f0_std_hz": 39.29,
+    "pause_ratio": 0.157,
+    "speaking_rate_wps": 3.639,
+    "n_pauses": 34
+  },
+  "uncontrolled (no control instruction)": {
+    "file": "en_uncontrolled.wav",
+    "duration_s": 15.36,
+    "f0_mean_hz": 202.85,
+    "f0_std_hz": 67.76,
+    "pause_ratio": 0.2292,
+    "speaking_rate_wps": 4.561,
+    "n_pauses": 39
+  }
+}
