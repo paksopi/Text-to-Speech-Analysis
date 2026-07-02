@@ -1,5 +1,8 @@
 # TTS Model Analysis — Malay / Indonesian / English
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
+
 An analysis and hands-on comparison of open-source text-to-speech (TTS) models for Malay (BM),
 Indonesian (ID), and English (EN) speech synthesis with zero-shot voice cloning. 10 models were
 researched; all 10 were actually installed and run (or documented as blocked) on the same hardware.
@@ -107,7 +110,40 @@ python src/comparison/run_chattts.py       # ChatTTS (EN)
 python src/comparison/run_f5tts.py         # F5-TTS (EN, cloned)
 ```
 
+## Model attribution & licensing
+
+Model weights are downloaded on first run (via Hugging Face) and are not redistributed in this repo.
+Code licenses are the wrapper library's; model *weights* can carry a separate, stricter license —
+check before any commercial use:
+
+| Model | Wrapper library license | Notes |
+|---|---|---|
+| VoxCPM2 | Apache-2.0 | Weights and code both Apache-2.0 — the only fully permissive option here |
+| Piper | GPL-3.0-or-later | Voice files (`rhasspy/piper-voices`) carry their own per-voice licenses |
+| Coqui XTTSv2 | MPL-2.0 (`coqui-tts` library) | XTTSv2 model weights are under Coqui's non-commercial Public Model License (CPML), separate from the library's MPL-2.0 |
+| StyleTTS2 | MIT | Community repackaging (`sidharthrajaram/StyleTTS2`), not the original authors' package |
+| Parler-TTS Mini | Apache-2.0 | |
+| ChatTTS | AGPLv3+ | Copyleft — network use may trigger source-disclosure obligations |
+| F5-TTS | MIT (library) | Check the specific checkpoint's license before commercial use |
+
 ## References
 
-- [VoxCPM2 (Hugging Face)](https://huggingface.co/openbmb/VoxCPM2)
-- [ElevenLabs](https://elevenlabs.io/) — commercial TTS API benchmarked against in the proposal
+### TTS models evaluated
+
+- [VoxCPM2 (Hugging Face)](https://huggingface.co/openbmb/VoxCPM2) — the model selected for this project; Apache-2.0, emotion-controllable, native Malay/Indonesian/English support with zero-shot voice cloning
+- [Piper](https://github.com/rhasspy/piper) — fast, lightweight VITS-based TTS with a large community voice catalog (`rhasspy/piper-voices`)
+- [Coqui TTS / XTTSv2](https://github.com/idiap/coqui-ai-TTS) — multilingual (17 languages) autoregressive TTS with zero-shot voice cloning
+- [StyleTTS 2](https://github.com/yl4579/StyleTTS2) — style-diffusion TTS with adversarial training
+- [Parler-TTS](https://huggingface.co/parler-tts) — text-to-audio model conditioned on a natural-language voice description
+- [ChatTTS](https://github.com/2noise/ChatTTS) — conversational TTS tuned for dialogue-style prosody
+- [F5-TTS](https://github.com/SWivid/F5-TTS) — non-autoregressive flow-matching TTS
+- [MeloTTS](https://github.com/myshell-ai/MeloTTS) — fast multilingual TTS (EN/ZH/JP/KR/FR/ES); not evaluated further, see [comparison report](reports/tts_models_comparison.md) for why
+- [Fish Speech](https://github.com/fishaudio/fish-speech) — LLM-based TTS foundation model; not evaluated further, see comparison report
+- [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) — LLM + flow-matching TTS; not evaluated further, see comparison report
+
+### Related tools and concepts
+
+- [ElevenLabs](https://elevenlabs.io/) — commercial TTS API benchmarked against in the infrastructure proposal
+- [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html) — PyTorch's JIT graph compiler, evaluated in the PoC rerun
+- [Triton](https://github.com/triton-lang/triton) / [triton-windows](https://github.com/woct0rdho/triton-windows) — the compiler backend `torch.compile` depends on for CUDA kernels; Windows builds are versioned separately from upstream Triton
+- [FFmpeg](https://ffmpeg.org/) — required for voice-cloning reference-audio decoding
