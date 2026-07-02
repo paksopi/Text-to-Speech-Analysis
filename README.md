@@ -1,33 +1,36 @@
-# TTS Model Analysis — Malay / Indonesian / English
+# Text-to-Speech Analysis — Malay / Indonesian / English
 
 [![CI](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 
-An analysis and hands-on comparison of open-source text-to-speech (TTS) models for Malay (BM),
+Comparative analysis and benchmarking of open-source text-to-speech (TTS) models for Malay (BM),
 Indonesian (ID), and English (EN) speech synthesis with zero-shot voice cloning. 10 models were
-researched; all 10 were actually installed and run (or documented as blocked) on the same hardware.
-**[VoxCPM2](https://huggingface.co/openbmb/VoxCPM2)** (Apache-2.0, open-weight) is the model selected
-for this project — see [Why VoxCPM2](#why-voxcpm2) below — and the rest of this repo builds out its PoC
-in more depth: environment setup, model download, EN/BM/ID generation tests, and zero-shot voice cloning.
+researched; all 10 were actually installed and run (or documented as blocked) on the same hardware
+(RTX 3050 Laptop, 6GB VRAM), using the same test sentences for comparability, and scored on four
+objective metrics — WER, speaker similarity, VRAM/parameter count, and prosody delta — rather than
+relying on marketing copy about language support.
+
+Of the 10, **[VoxCPM2](https://huggingface.co/openbmb/VoxCPM2)** (Apache-2.0, open-weight) came out as
+this project's selected model — see [Selected model](#selected-model-voxcpm2) below for why — and the
+rest of this repo builds out its proof-of-concept in more depth: environment setup, model download,
+EN/BM/ID generation tests, and zero-shot voice cloning.
 
 - Full model comparison, measured results, and install-friction notes: [`reports/tts_models_comparison.md`](reports/tts_models_comparison.md)
-- VoxCPM2 infrastructure/feasibility writeup: [`reports/VoxCPM2_PoC_Infrastructure_Proposal.md`](reports/VoxCPM2_PoC_Infrastructure_Proposal.md)
+- VoxCPM2 infrastructure/feasibility writeup — GPU sizing and cost vs. ElevenLabs: [`reports/VoxCPM2_PoC_Infrastructure_Proposal.md`](reports/VoxCPM2_PoC_Infrastructure_Proposal.md)
 - VoxCPM2 PoC rerun results (after the original was lost and rebuilt): [`reports/poc_rerun_results.md`](reports/poc_rerun_results.md)
 
-## Why VoxCPM2
+## Model Comparison
 
 10 models were compared: VoxCPM2, Piper, Coqui XTTSv2, StyleTTS2, Parler-TTS Mini, ChatTTS, F5-TTS,
-MeloTTS, Fish Speech, and CosyVoice 2.0. **VoxCPM2 is the only one with native Malay support**, and one
-of only two (with Piper) supporting Indonesian — every other model tops out at English, or
-English+Chinese. 3 of the 9 alternatives (MeloTTS, Fish Speech, CosyVoice) couldn't even be installed
-cleanly (broken/incomplete PyPI packages, or no official package at all). This settles the model choice
-for this project regardless of speed/VRAM trade-offs — full measured timings and install notes in the
-comparison report.
+MeloTTS, Fish Speech, and CosyVoice 2.0. 3 of the 10 (MeloTTS, Fish Speech, CosyVoice) couldn't even be
+installed cleanly — broken/incomplete PyPI packages, or no official package at all — which is itself part
+of the finding, not a footnote; see the comparison report's [Installation Friction](reports/tts_models_comparison.md#installation-friction-as-a-finding)
+section for what specifically broke on each.
 
 | Model | EN | BM | ID | Measured speed | Mode | Device | Status |
 |---|---|---|---|---|---|---|---|
-| **VoxCPM2** (chosen) | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s | eager | GPU | Full native support |
+| VoxCPM2 | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s | eager | GPU | Full native support |
 | Piper | ✅ | ❌ | ✅ | 0.384s / — / 0.307s | default | CPU | Only other model with any ID support |
 | Coqui XTTSv2 | ✅ | ❌ | ❌ | 4.79s / — / — | default | GPU | 17 languages, none BM/ID |
 | StyleTTS2 | ✅ | ❌ | ❌ | 3.86s / — / — | default | GPU | English-only |
@@ -38,22 +41,27 @@ comparison report.
 | Fish Speech | — | ❌ | ❌ | — | — | — | Blocked (PyPI package inference-incomplete) |
 | CosyVoice 2.0 | — | ❌ | ❌ | — | — | — | Skipped (no official PyPI package) |
 
-"Mode" = eager vs. `torch.compile`-compiled inference. VoxCPM2 is the only model here whose wrapper
-exposes an explicit eager/compile toggle (`optimize=`); its number above is **eager**, since the PoC rerun
-found `torch.compile` is 10-20x *slower* in this one-off-call test pattern — see
-[VoxCPM2 PoC Results](#voxcpm2-poc-results) below. "default" for the other 9 models means each library's
-own out-of-the-box inference path was used as-is, with no `torch.compile` applied by this project's
-scripts — but whether any of those libraries silently self-compile internally wasn't independently
-verified, so those numbers should be read as "as installed," not confirmed-eager. **Known limitation:**
-this eager/compiled distinction was only tracked for VoxCPM2; it's not recorded for the other 9.
+**Only VoxCPM2 has native Malay support, and only VoxCPM2 + Piper support Indonesian** — every other
+model tops out at English, or English+Chinese.
 
-### Objective evaluation, not just language support
+"Mode" = eager vs. `torch.compile`-compiled inference. VoxCPM2 is the only model here whose wrapper
+exposes an explicit eager/compile toggle (`optimize=`); its number above is **eager**, since the PoC
+rerun found `torch.compile` is 10-20x *slower* in this one-off-call test pattern — see
+[VoxCPM2 Proof-of-Concept](#voxcpm2-proof-of-concept) below. "default" for the other 9 models means each
+library's own out-of-the-box inference path was used as-is, with no `torch.compile` applied by this
+project's scripts — but whether any of those libraries silently self-compile internally wasn't
+independently verified, so those numbers should be read as "as installed," not confirmed-eager. **Known
+limitation:** this eager/compiled distinction was only tracked for VoxCPM2; it's not recorded for the
+other 9.
+
+## Objective Evaluation
 
 Four automated metrics back up the table above with numbers instead of vibes — full methodology and
 results in the [comparison report's Objective Evaluation section](reports/tts_models_comparison.md#objective-evaluation).
 **Preliminary, not statistically powered:** each number below comes from a single generation per
 condition (n=1 per cell, one sentence for the prosody comparison) — useful for spotting large gaps, not
-for fine-grained ranking between close scores; see the report's sample-size caveat for detail.
+for fine-grained ranking between close scores; see the report's sample-size caveat for detail, and
+[Limitations & Future Work](#limitations--future-work) below.
 
 | Metric | What it measures | VoxCPM2 result |
 |---|---|---|
@@ -62,12 +70,22 @@ for fine-grained ranking between close scores; see the report's sample-size cave
 | **VRAM / parameter count** | Light vs. heavy, measured not estimated | **2,384M params, 5.76 GB peak VRAM** — the heaviest model tested, confirming it runs at the edge of this hardware's 6GB budget |
 | **Prosody delta** (F0/pacing with vs. without the control instruction) | Does emotion control actually do anything | Pitch variance nearly halves (39 vs. 68 Hz std), speaking rate drops ~20% — measurably works for tone/pacing; doesn't reliably increase pause frequency on the one sentence tested |
 
-## VoxCPM2 PoC Results
+## Selected model: VoxCPM2
 
-Rebuilt and reran on the same RTX 3050 Laptop (6GB VRAM) hardware as the original proposal, across two
-runs. All twelve test generations succeeded — EN/BM/ID baseline (default voice) and EN/BM/ID cloned from
-a single anchor clip (the EN baseline output, reused as the zero-shot voice-cloning reference across all
-three languages) — see the rerun report for the full test script/control-instruction text.
+VoxCPM2 is the only one of the 10 compared models with native Malay support, and ties with Piper as the
+only one with Indonesian support. That settles model choice for this project's actual language
+requirement regardless of the speed/VRAM trade-offs above — full reasoning, architecture background, and
+the full 10-model research catalog are in the [comparison report](reports/tts_models_comparison.md#why-voxcpm2-wins-on-the-criterion-that-actually-matters).
+Its wrapper library and weights are both Apache-2.0 — see [Model attribution & licensing](#model-attribution--licensing)
+for how that compares to the other 6 models that actually run.
+
+## VoxCPM2 Proof-of-Concept
+
+Rebuilt and reran on the same RTX 3050 Laptop (6GB VRAM) hardware as the original infrastructure
+proposal, across two runs. All twelve test generations succeeded — EN/BM/ID baseline (default voice) and
+EN/BM/ID cloned from a single anchor clip (the EN baseline output, reused as the zero-shot voice-cloning
+reference across all three languages) — see the rerun report for the full test script/control-instruction
+text.
 
 **Run 1 (eager mode — `torch.compile` silently disabled by a Triton version mismatch):**
 
@@ -87,11 +105,31 @@ three languages) — see the rerun report for the full test script/control-instr
 
 `torch.compile` now genuinely activates, but is **10-20x slower** here than eager mode — it recompiles a
 fresh graph for every distinct input shape, and every call in this run used a different one, so
-compilation cost never amortized. This isn't a contradiction of the original proposal's RTX 4090 compile
-projections, which assume a production serving loop with many repeated, shape-stable calls; a handful of
-one-off, varying-length test calls is close to the worst case for `torch.compile`. Practical takeaway:
-keep `optimize=False` (eager mode) for exploratory testing like this, and only enable compile once
-building a real serving loop. Full breakdown and open items in the rerun report.
+compilation cost never amortized. This isn't a contradiction of the infrastructure proposal's RTX 4090
+compile projections, which assume a production serving loop with many repeated, shape-stable calls; a
+handful of one-off, varying-length test calls is close to the worst case for `torch.compile`. Practical
+takeaway: keep `optimize=False` (eager mode) for exploratory testing like this, and only enable compile
+once building a real serving loop. Full breakdown and open items in the rerun report.
+
+## Infrastructure & Cost
+
+The [infrastructure proposal](reports/VoxCPM2_PoC_Infrastructure_Proposal.md) sizes what self-hosting
+VoxCPM2 actually costs beyond this dev laptop, benchmarked against ElevenLabs (the closest commercial
+API alternative with comparable emotion/style control):
+
+| GPU (VRAM) | Basis | Sec / call | \$ / call |
+|---|---|---|---|
+| RTX 3050 Laptop (6GB) — this repo's PoC | **Measured** | ~96.8 (avg of 3 langs) | n/a (owned hardware) |
+| RTX 4090 (24GB), standard mode | Projected from official RTF 0.30 | ~6.7 | ~\$0.0006-0.0009 |
+| RTX 4090 (24GB), Nano-vLLM accelerated | Projected from official RTF 0.13 | ~2.9 | ~\$0.0003-0.0004 |
+| ElevenLabs API (Multilingual v2) | Commercial baseline | n/a | \$0.017-0.035 |
+
+**Headline takeaway:** once running on adequately-sized hardware (8GB+ VRAM, ideally 24GB for comfortable
+throughput), self-hosted VoxCPM2 is roughly 20-50x cheaper per call than the ElevenLabs API for
+equivalent text length — before accounting for ElevenLabs' fixed monthly subscription floor. The
+trade-off is operational, not financial: self-hosting means owning uptime, scaling, and serving
+infrastructure instead of paying a vendor to manage it. Full GPU-tier breakdown, methodology, and the
+"why the current laptop is unsuitable beyond PoC" reasoning are in the proposal doc.
 
 ## Layout
 
@@ -104,7 +142,7 @@ building a real serving loop. Full breakdown and open items in the rerun report.
 | `results/comparison/` | `.wav` outputs and timing logs from the 9-model comparison | **Yes** — ~4 MB of audio, same reasoning |
 | `results/eval/` | JSON output from the objective evaluation scripts | Yes (small, text-only) |
 | `results/logs/` | Per-call generation timing logs for VoxCPM2 | Yes (small, text-only) |
-| `reports/` | Written analysis — the model comparison, the original infra proposal, and the PoC rerun writeup | Yes |
+| `reports/` | Written analysis — the model comparison, the infra proposal, and the PoC rerun writeup | Yes |
 
 Only `.venv/`, `.venvs/`, `.cache/`, and Python build artifacts are gitignored (see
 [`.gitignore`](.gitignore)) — everything under `results/` is intentionally committed, not generated fresh
@@ -116,7 +154,7 @@ main history keep growing with binary blobs.
 ## Setup
 
 Requires **Python 3.10–3.12**. GPU: NVIDIA, CUDA 12.0+ driver, 8GB+ VRAM recommended (this PoC was
-run on a 6GB card — see the report for the tradeoffs that implies).
+run on a 6GB card — see [Infrastructure & Cost](#infrastructure--cost) for the tradeoffs that implies).
 
 ```bash
 py -3.12 -m venv .venv
@@ -128,8 +166,8 @@ pip install -r requirements.txt
 
 This repo uses **11 separate virtual environments**, all gitignored (`.venv/`, `.venvs/*/`) so none of
 them are committed — only `requirements.txt` and `src/eval/requirements-eval.txt` are checked in.
-They're split up because the 10 TTS models compared here (see [Why VoxCPM2](#why-voxcpm2)) come from
-unrelated frameworks with genuinely incompatible pinned dependencies, not out of carelessness:
+They're split up because the 10 TTS models compared here (see [Model Comparison](#model-comparison)) come
+from unrelated frameworks with genuinely incompatible pinned dependencies, not out of carelessness:
 
 | Venv | Purpose |
 |---|---|
@@ -215,6 +253,32 @@ check before any commercial use:
 | Parler-TTS Mini | Apache-2.0 | |
 | ChatTTS | AGPLv3+ | Copyleft — network use may trigger source-disclosure obligations |
 | F5-TTS | MIT (library) | Check the specific checkpoint's license before commercial use |
+
+## Limitations & Future Work
+
+This analysis is honest about what it doesn't cover yet:
+
+- **No human-rated naturalness score.** None of the four objective metrics (WER, speaker similarity,
+  VRAM, prosody delta) capture naturalness or emotional appropriateness. A small MOS (Mean Opinion Score)
+  pass — e.g. 5-10 listeners rating the 12 VoxCPM2 test clips on a 1-5 scale — would close this gap; see
+  the comparison report's [Future Work](reports/tts_models_comparison.md#future-work-a-human-mos-pass)
+  note.
+- **Small sample sizes, no confidence intervals.** Every objective-evaluation number is from a single
+  generation per condition (n=1 per cell; 1 sentence for the prosody comparison) — directional, not
+  statistically powered. Expanding to 15-20 generations per language per model would require re-running
+  inference across every model's isolated venv; flagged as follow-up, not attempted in this pass.
+- **Eager-vs-compiled tracked for one model only.** `torch.compile` was found 10-20x slower than eager
+  mode for VoxCPM2 in this test pattern, but that toggle isn't exposed the same way in the other 9
+  libraries — their "default" speed numbers aren't confirmed eager or compiled.
+- **Cross-lingual accent bleed-through is unassessed by native speakers.** The speaker-similarity metric
+  quantifies that BM/ID clones score lower than the EN clone (0.85 vs. 0.94), but whether that gap is
+  audibly an "accent" to a native Malay/Indonesian listener hasn't had human review.
+- **Long-form stability is untested.** All generation tests here use short (~20-25 word) utterances;
+  VoxCPM2's own documentation notes instability on longer text, which would need chunking and separate
+  testing before assuming linear scaling.
+- **No production serving layer.** Every result here is a manual, single-request generation call. A real
+  serving layer (batching, concurrent requests, warm compiled-graph reuse) is unscoped — see the
+  infrastructure proposal's "Serving architecture not yet scoped" item.
 
 ## References
 
