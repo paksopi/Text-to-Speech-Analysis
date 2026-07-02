@@ -10,7 +10,6 @@ import json
 from pathlib import Path
 
 import jiwer
-import whisper
 
 from manifest import MANIFEST
 
@@ -28,7 +27,18 @@ NORMALIZE = jiwer.Compose(
 )
 
 
+def compute_wer(expected_text: str, transcription: str) -> float:
+    return jiwer.wer(
+        expected_text,
+        transcription,
+        reference_transform=NORMALIZE,
+        hypothesis_transform=NORMALIZE,
+    )
+
+
 def main():
+    import whisper  # heavy import (torch) -- deferred so `compute_wer` stays cheap to unit-test
+
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     model = whisper.load_model("medium")
 
@@ -39,12 +49,7 @@ def main():
             continue
 
         transcription = model.transcribe(str(path), language=lang)["text"]
-        wer = jiwer.wer(
-            expected_text,
-            transcription,
-            reference_transform=NORMALIZE,
-            hypothesis_transform=NORMALIZE,
-        )
+        wer = compute_wer(expected_text, transcription)
 
         result = {
             "file": path.name,

@@ -22,7 +22,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dev/test dependencies
-        run: pip install ruff pytest soundfile numpy
+        run: pip install ruff pytest soundfile numpy jiwer
 
       - name: Ruff check
         run: ruff check .

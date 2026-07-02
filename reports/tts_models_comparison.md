@@ -32,21 +32,32 @@ photosynthesis, but let's think a little deeper."* (same sentence used across ev
 comparability). ID and BM rows use the equivalent translated test sentences from the VoxCPM2 test suite.
 Each model was installed in its own isolated venv (`.venvs/<model>/`) to avoid dependency conflicts.
 
-| Model | EN | BM | ID | Measured speed | Device | Status |
-|---|---|---|---|---|---|---|
-| **VoxCPM2** (chosen model) | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s (eager) | GPU | Full native support — see [`poc_rerun_results.md`](poc_rerun_results.md) |
-| **Piper** | ✅ | ❌ | ✅ | 0.384s / — / 0.307s | **CPU** | Works; has an `id_ID` voice, no `ms` voice in `rhasspy/piper-voices` |
-| **Coqui XTTSv2** | ✅ | ❌ | ❌ | 4.79s (default) / 4.19s (cloned) | GPU | Works; 17 supported languages, none BM/ID |
-| **StyleTTS2** | ✅ | ❌ | ❌ | 3.86s | GPU | Works; English-only phonemizer (`gruut-lang-en`) |
-| **Parler-TTS Mini** | ✅ | ❌ | ❌ | 16.575s | GPU | Works; English-only per model card |
-| **ChatTTS** | ✅ | ❌ | ❌ | 13.107s | GPU | Works; EN+ZH only, drops `!`/`'` as "invalid characters" |
-| **F5-TTS** | ✅ | ❌ | ❌ | 15.123s (cloned) | GPU | Works; EN+ZH only, voice-cloning-only (no built-in default voice) |
-| **MeloTTS** | — | ❌ | ❌ | — | — | **Blocked** — broken PyPI package; see below |
-| **Fish Speech** | — | ❌ | ❌ | — | — | **Blocked** — PyPI package is inference-incomplete; see below |
-| **CosyVoice 2.0** | — | ❌ | ❌ | — | — | **Skipped** — no official PyPI package; see below |
+| Model | EN | BM | ID | Measured speed | Mode | Device | Status |
+|---|---|---|---|---|---|---|---|
+| **VoxCPM2** (chosen model) | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s | **eager** | GPU | Full native support — see [`poc_rerun_results.md`](poc_rerun_results.md) |
+| **Piper** | ✅ | ❌ | ✅ | 0.384s / — / 0.307s | default | **CPU** | Works; has an `id_ID` voice, no `ms` voice in `rhasspy/piper-voices` |
+| **Coqui XTTSv2** | ✅ | ❌ | ❌ | 4.79s (default) / 4.19s (cloned) | default | GPU | Works; 17 supported languages, none BM/ID |
+| **StyleTTS2** | ✅ | ❌ | ❌ | 3.86s | default | GPU | Works; English-only phonemizer (`gruut-lang-en`) |
+| **Parler-TTS Mini** | ✅ | ❌ | ❌ | 16.575s | default | GPU | Works; English-only per model card |
+| **ChatTTS** | ✅ | ❌ | ❌ | 13.107s | default | GPU | Works; EN+ZH only, drops `!`/`'` as "invalid characters" |
+| **F5-TTS** | ✅ | ❌ | ❌ | 15.123s (cloned) | default | GPU | Works; EN+ZH only, voice-cloning-only (no built-in default voice) |
+| **MeloTTS** | — | ❌ | ❌ | — | — | — | **Blocked** — broken PyPI package; see below |
+| **Fish Speech** | — | ❌ | ❌ | — | — | — | **Blocked** — PyPI package is inference-incomplete; see below |
+| **CosyVoice 2.0** | — | ❌ | ❌ | — | — | — | **Skipped** — no official PyPI package; see below |
 
 (Coqui VITS, the lighter EN-only architecture bundled in the same `coqui-tts` package as XTTSv2, wasn't
 separately timed — XTTSv2 already establishes Coqui's EN-only ceiling and is the more capable of the two.)
+
+**Eager vs. compiled, and why it matters here:** the PoC rerun (see [`poc_rerun_results.md`](poc_rerun_results.md))
+found `torch.compile` is **10-20x slower** than eager mode for VoxCPM2 in this test pattern — a swing large
+enough to change which model looks fastest, so every "Measured speed" number above is labeled by mode.
+VoxCPM2's `optimize=` toggle (in `src/common.py`) is the only explicit eager/compile switch this project's
+own code exposes; its number is confirmed **eager**. The other 9 models were run through each library's
+own out-of-the-box call path with no `torch.compile` wrapping applied by this project — labeled
+**default** rather than "eager" because it wasn't independently verified whether any of those libraries
+compile internally by default. **Known limitation:** the eager-vs-compiled distinction that mattered so
+much for VoxCPM2 was not tracked per-model for the other 9; their "default" numbers should be read as
+"as installed, not benchmarked under both modes," not as a confirmed apples-to-apples eager comparison.
 
 ## Objective Evaluation
 
@@ -54,6 +65,21 @@ Beyond "does it support the language," four automated metrics were run against t
 put numbers behind quality claims instead of relying on listening tests. Scripts live in `src/eval/`,
 raw output in `results/eval/`. True MOS (human-rated naturalness) isn't automatable and isn't claimed
 here — these four are the objective proxies that are.
+
+**Sample-size caveat — read before citing these numbers elsewhere:** every metric below is computed on a
+single generation per condition (6 VoxCPM2 clips total: EN/BM/ID × baseline/cloned; 1-5 clips for the
+alternative models; 1 sentence pair for the prosody-delta comparison). These are **directional findings,
+not statistically powered results** — there is no repeat-generation variance data, so no confidence
+interval can honestly be reported (an interval computed from n=1 per cell would be meaningless, not
+just imprecise). A single bad/good transcription or a single unlucky Resemblyzer embedding shifts a
+reported number entirely, with no way to tell signal from generation-to-generation noise. Treat every
+WER/similarity/prosody number here as "this is what happened on the one run we generated," useful for
+spotting large, obvious gaps (e.g. VoxCPM2's 0.0 WER vs. F5-TTS's 0.25), not for precise ranking between
+models that land close together. Expanding to 15-20 generations per language per model — enough to
+report a rough confidence interval — would require re-running inference across every model's isolated
+venv (see [Why so many venvs](../README.md#why-so-many-venvs)), which wasn't done as part of this pass;
+flagged here as **preliminary, unpowered results** and as follow-up work rather than silently presented
+as settled.
 
 ### 1. Word Error Rate (WER) — does the model actually say the right words
 
@@ -146,6 +172,17 @@ the *controlled* version actually paused *less* (15.7% vs. 22.9% of total durati
 one. Reported as-is rather than only citing the two metrics that confirm the story — the control
 instruction measurably works for pitch and pacing, but doesn't reliably produce more/longer pauses on
 this one test sentence.
+
+### Future work: a human MOS pass
+
+None of the four objective metrics above — WER, speaker similarity, VRAM/params, prosody delta — capture
+**naturalness or emotional appropriateness**, which matters directly for a tutoring-context voice (the
+project's actual use case). A clip can transcribe perfectly (0.0 WER) and still sound robotic, or clone a
+voice with high cosine similarity and still sound flat or emotionally mismatched to "patient, encouraging
+tutor." Closing this gap needs a small human-rated Mean Opinion Score (MOS) pass — e.g. 5-10 listeners
+rating the 12 existing VoxCPM2 test clips (EN/BM/ID × baseline/cloned) on a 1-5 naturalness/appropriateness
+scale — which is out of scope for this pass but flagged here as the clear next step before treating the
+objective metrics above as a complete quality picture.
 
 ## Model background — what each architecture actually is
 

@@ -1,5 +1,6 @@
 # TTS Model Analysis — Malay / Indonesian / English
 
+[![CI](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 
@@ -24,23 +25,35 @@ cleanly (broken/incomplete PyPI packages, or no official package at all). This s
 for this project regardless of speed/VRAM trade-offs — full measured timings and install notes in the
 comparison report.
 
-| Model | EN | BM | ID | Measured speed | Device | Status |
-|---|---|---|---|---|---|---|
-| **VoxCPM2** (chosen) | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s | GPU | Full native support |
-| Piper | ✅ | ❌ | ✅ | 0.384s / — / 0.307s | CPU | Only other model with any ID support |
-| Coqui XTTSv2 | ✅ | ❌ | ❌ | 4.79s / — / — | GPU | 17 languages, none BM/ID |
-| StyleTTS2 | ✅ | ❌ | ❌ | 3.86s / — / — | GPU | English-only |
-| Parler-TTS Mini | ✅ | ❌ | ❌ | 16.575s / — / — | GPU | English-only |
-| ChatTTS | ✅ | ❌ | ❌ | 13.107s / — / — | GPU | EN+ZH only |
-| F5-TTS | ✅ | ❌ | ❌ | 15.123s / — / — | GPU | EN+ZH only |
-| MeloTTS | — | ❌ | ❌ | — | — | Blocked (broken PyPI package) |
-| Fish Speech | — | ❌ | ❌ | — | — | Blocked (PyPI package inference-incomplete) |
-| CosyVoice 2.0 | — | ❌ | ❌ | — | — | Skipped (no official PyPI package) |
+| Model | EN | BM | ID | Measured speed | Mode | Device | Status |
+|---|---|---|---|---|---|---|---|
+| **VoxCPM2** (chosen) | ✅ | ✅ | ✅ | 20.45s / 18.97s / 29.13s | eager | GPU | Full native support |
+| Piper | ✅ | ❌ | ✅ | 0.384s / — / 0.307s | default | CPU | Only other model with any ID support |
+| Coqui XTTSv2 | ✅ | ❌ | ❌ | 4.79s / — / — | default | GPU | 17 languages, none BM/ID |
+| StyleTTS2 | ✅ | ❌ | ❌ | 3.86s / — / — | default | GPU | English-only |
+| Parler-TTS Mini | ✅ | ❌ | ❌ | 16.575s / — / — | default | GPU | English-only |
+| ChatTTS | ✅ | ❌ | ❌ | 13.107s / — / — | default | GPU | EN+ZH only |
+| F5-TTS | ✅ | ❌ | ❌ | 15.123s / — / — | default | GPU | EN+ZH only |
+| MeloTTS | — | ❌ | ❌ | — | — | — | Blocked (broken PyPI package) |
+| Fish Speech | — | ❌ | ❌ | — | — | — | Blocked (PyPI package inference-incomplete) |
+| CosyVoice 2.0 | — | ❌ | ❌ | — | — | — | Skipped (no official PyPI package) |
+
+"Mode" = eager vs. `torch.compile`-compiled inference. VoxCPM2 is the only model here whose wrapper
+exposes an explicit eager/compile toggle (`optimize=`); its number above is **eager**, since the PoC rerun
+found `torch.compile` is 10-20x *slower* in this one-off-call test pattern — see
+[VoxCPM2 PoC Results](#voxcpm2-poc-results) below. "default" for the other 9 models means each library's
+own out-of-the-box inference path was used as-is, with no `torch.compile` applied by this project's
+scripts — but whether any of those libraries silently self-compile internally wasn't independently
+verified, so those numbers should be read as "as installed," not confirmed-eager. **Known limitation:**
+this eager/compiled distinction was only tracked for VoxCPM2; it's not recorded for the other 9.
 
 ### Objective evaluation, not just language support
 
 Four automated metrics back up the table above with numbers instead of vibes — full methodology and
-results in the [comparison report's Objective Evaluation section](reports/tts_models_comparison.md#objective-evaluation):
+results in the [comparison report's Objective Evaluation section](reports/tts_models_comparison.md#objective-evaluation).
+**Preliminary, not statistically powered:** each number below comes from a single generation per
+condition (n=1 per cell, one sentence for the prosody comparison) — useful for spotting large gaps, not
+for fine-grained ranking between close scores; see the report's sample-size caveat for detail.
 
 | Metric | What it measures | VoxCPM2 result |
 |---|---|---|
@@ -82,16 +95,23 @@ building a real serving loop. Full breakdown and open items in the rerun report.
 
 ## Layout
 
-| Folder | Contents |
-|---|---|
-| `src/` | VoxCPM2 generation scripts (baseline TTS + voice-cloning tests) |
-| `src/comparison/` | One-off smoke-test scripts for each of the 9 alternative models |
-| `src/eval/` | Objective evaluation: WER, speaker-similarity, VRAM/model-size profiling, prosody analysis |
-| `results/audio/` | VoxCPM2 `.wav` test outputs (baseline, cloned-voice, and uncontrolled per language) |
-| `results/comparison/` | `.wav` outputs and timing logs from the 9-model comparison |
-| `results/eval/` | JSON output from the objective evaluation scripts |
-| `results/logs/` | Per-call generation timing logs for VoxCPM2 |
-| `reports/` | Written analysis — the model comparison, the original infra proposal, and the PoC rerun writeup |
+| Folder | Contents | Committed to git? |
+|---|---|---|
+| `src/` | VoxCPM2 generation scripts (baseline TTS + voice-cloning tests) | Yes |
+| `src/comparison/` | One-off smoke-test scripts for each of the 9 alternative models | Yes |
+| `src/eval/` | Objective evaluation: WER, speaker-similarity, VRAM/model-size profiling, prosody analysis | Yes |
+| `results/audio/` | VoxCPM2 `.wav` test outputs (baseline, cloned-voice, and uncontrolled per language) | **Yes** — ~14 MB of audio, committed on purpose (see [postmortem](reports/poc_rerun_results.md#why-this-was-rebuilt-and-what-changed-to-prevent-it-happening-again)) |
+| `results/comparison/` | `.wav` outputs and timing logs from the 9-model comparison | **Yes** — ~4 MB of audio, same reasoning |
+| `results/eval/` | JSON output from the objective evaluation scripts | Yes (small, text-only) |
+| `results/logs/` | Per-call generation timing logs for VoxCPM2 | Yes (small, text-only) |
+| `reports/` | Written analysis — the model comparison, the original infra proposal, and the PoC rerun writeup | Yes |
+
+Only `.venv/`, `.venvs/`, `.cache/`, and Python build artifacts are gitignored (see
+[`.gitignore`](.gitignore)) — everything under `results/` is intentionally committed, not generated fresh
+per clone. Total repo size is currently ~18-19 MB, almost entirely the `.wav` files above; not a problem
+today, but if the audio corpus grows meaningfully beyond this scale, moving `results/audio/` and
+`results/comparison/` to [Git LFS](https://git-lfs.com/) would be the next step rather than letting the
+main history keep growing with binary blobs.
 
 ## Setup
 

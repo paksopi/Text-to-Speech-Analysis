@@ -5,6 +5,17 @@ after the project folder was lost. Same machine as the original proposal (HP Vic
 6GB VRAM). Two runs are recorded below: an initial eager-mode smoke test, then a second run after pinning
 Triton to fix `torch.compile` and switching to a richer, longer test script.
 
+## Why this was rebuilt, and what changed to prevent it happening again
+
+The original PoC's results
+(audio outputs, timing logs) existed only in a local, untracked project folder that was subsequently
+lost, so this document had to be reconstructed from scratch by rerunning the whole test suite. To prevent
+a repeat: every generated `.wav` and timing log this repo produces (`results/audio/`, `results/comparison/`,
+`results/eval/`, `results/logs/`) is now **committed to git**, not gitignored (only the venvs and caches
+are — see [`.gitignore`](../.gitignore)) — so results survive a lost local checkout, and a `git clone`
+of this repo reproduces the exact evidence behind every number in this report and
+[`tts_models_comparison.md`](tts_models_comparison.md), not just the scripts that generated it.
+
 ## Environment actually installed
 
 | Component | Version |

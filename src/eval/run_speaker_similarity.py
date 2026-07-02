@@ -12,7 +12,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-from resemblyzer import VoiceEncoder, preprocess_wav
 
 from manifest import MANIFEST
 
@@ -20,7 +19,14 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_PATH = ROOT / "results" / "eval" / "speaker_similarity_results.json"
 
 
+def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+    """Resemblyzer embeddings are unit-normalized, so dot product == cosine similarity."""
+    return float(np.dot(a, b))
+
+
 def main():
+    from resemblyzer import VoiceEncoder, preprocess_wav  # heavy import (torch) -- deferred for testability
+
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     encoder = VoiceEncoder()
 
@@ -43,7 +49,7 @@ def main():
 
         anchor_emb = embed(anchor)
         clone_emb = embed(path)
-        similarity = float(np.dot(anchor_emb, clone_emb))
+        similarity = cosine_similarity(anchor_emb, clone_emb)
 
         result = {
             "file": path.name,
