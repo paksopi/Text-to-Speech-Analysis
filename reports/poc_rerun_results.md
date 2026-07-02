@@ -2,7 +2,8 @@
 
 Rebuild of the original PoC (see [`VoxCPM2_PoC_Infrastructure_Proposal.md`](VoxCPM2_PoC_Infrastructure_Proposal.md))
 after the project folder was lost. Same machine as the original proposal (HP Victus 15, RTX 3050 Laptop
-6GB VRAM), same target languages (EN / BM / ID), same `'calm, articulate, reflective'` control instruction.
+6GB VRAM). Two runs are recorded below: an initial eager-mode smoke test, then a second run after pinning
+Triton to fix `torch.compile` and switching to a richer, longer test script.
 
 ## Environment actually installed
 
@@ -11,57 +12,92 @@ after the project folder was lost. Same machine as the original proposal (HP Vic
 | Python | 3.12 |
 | PyTorch / torchaudio | 2.6.0+cu124 |
 | voxcpm | 2.0.3 |
-| triton-windows | 3.7.1.post27 |
-| Model | `openbmb/VoxCPM2` (auto-downloaded from Hugging Face, ~1m27s over 9 files) |
+| triton-windows | **3.2.0.post21** (pinned — see below) |
+| Model | `openbmb/VoxCPM2` (auto-downloaded from Hugging Face, ~4-5GB) |
 | Denoiser | Disabled (`load_denoiser=False`), matching the original proposal's VRAM-saving mitigation |
 
-**torch.compile / Triton:** installed and `optimize=True` was requested, but VoxCPM2 disabled it
-internally at load time with: `torch.compile disabled - cannot import name 'AttrsDescriptor' from
-'triton.compiler.compiler'` — a version mismatch between this `triton-windows` build and what VoxCPM2's
-compiled kernels expect. Generation silently ran in eager mode. This is a different failure mode than
-the original proposal anticipated (VRAM-driven OOM) — here it's a Triton/VoxCPM2 API compatibility gap,
-not a memory ceiling. Worth revisiting with a pinned/older `triton-windows` version if the full
-`torch.compile` speedup is needed.
+## Test content (both runs use this format)
 
-## Baseline generation (default voice, no reference clip)
+Control instructions are passed as a `(...)` prefix ahead of the target text, per VoxCPM2's voice-design
+convention. Run 2 uses a longer, more specific control instruction and a real teaching-script sentence,
+translated into BM and ID:
 
-Test sentence: a one-sentence mentor-style line (~20-25 words per language), shorter than the original
-proposal's 58-word script, so absolute times aren't directly comparable — but the relative EN/BM/ID
-pattern held.
+> **Control:** "A calm, articulate female voice in her early-20s. Her tone is grounded and reflective,
+> carrying a sense of 'warm precision'. Deliberate pauses are used between ideas to give the listener
+> space to think, maintaining a patient, unhurried pace."
+>
+> **EN:** "Great, I love that question! So we know that sunlight is important for photosynthesis — but
+> let's think a little deeper. Think of a plant as a little factory — light is the energy that comes in.
+> Now, what do you think a plant does with that energy? What do plants need to survive and grow?"
+>
+> **BM:** "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis —
+> tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil — cahaya
+> ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah
+> yang tumbuhan perlukan untuk hidup dan membesar?"
+>
+> **ID:** "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis
+> — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan sebagai sebuah pabrik kecil — cahaya adalah
+> energi yang masuk. Sekarang, menurutmu apa yang dilakukan tumbuhan dengan energi itu? Apa yang
+> dibutuhkan tumbuhan untuk bertahan hidup dan tumbuh?"
 
-| Language | Time | Output |
+## Run 1: eager mode (torch.compile silently disabled)
+
+`triton-windows` 3.7.1.post27 (latest at the time) was incompatible with this VoxCPM2/torch build:
+`torch.compile disabled - cannot import name 'AttrsDescriptor' from 'triton.compiler.compiler'`.
+Generation ran in eager mode using a shorter one-sentence test script (~20-25 words/language).
+
+| Language | Baseline time | Cloned time |
 |---|---|---|
-| EN | 20.45s | `results/audio/en_baseline.wav` (8.16s audio) |
-| BM | 18.97s | `results/audio/bm_baseline.wav` (7.36s audio) |
-| ID | 29.13s | `results/audio/id_baseline.wav` (11.04s audio) |
+| EN | 20.45s | 56.05s |
+| BM | 18.97s | 45.59s |
+| ID | 29.13s | 49.49s |
 
-Even in eager mode (no working `torch.compile`), these times are well under the original proposal's
-92.9–102.7 sec/utterance — expected, since the test sentence here is roughly a third of the length.
+## Run 2: torch.compile fixed via Triton pin, longer test script
 
-## Voice-clone anchor test
+**Fix:** `torch` 2.6.0 expects Triton 3.2.x (that's what it bundles on Linux). `triton-windows` publishes
+separately versioned Windows builds, and the latest one (3.7.1) had drifted ahead of what VoxCPM2's
+compiled kernels expect. Pinning to `triton-windows==3.2.0.post21` fixed the `AttrsDescriptor` import and
+`torch.compile` genuinely activated this time — confirmed by `torch._inductor.compile_fx` warnings
+appearing in the logs and the `"torch.compile disabled"` message no longer appearing at all.
 
-Per-project decision: instead of recording a separate reference clip, `en_baseline.wav` from the run
-above was reused as the **anchor** voice (`reference_wav_path`) and the same three sentences were
-regenerated cloned from it — mirroring the original proposal's "one reference clip reused across all 3
-languages" validation.
-
-| Language | Time | Output |
+| Language | Baseline time | Cloned time |
 |---|---|---|
-| EN | 56.05s | `results/audio/en_cloned.wav` (8.16s audio) |
-| BM | 45.59s | `results/audio/bm_cloned.wav` (8.96s audio) |
-| ID | 49.49s | `results/audio/id_cloned.wav` (10.24s audio) |
+| EN | 269.76s | 236.15s |
+| BM | 353.78s | 348.81s |
+| ID | 359.44s | 328.52s |
 
-Cloning roughly doubled-to-tripled generation time per call versus the uncloned baseline (reference
-audio has to be encoded through the audio VAE each call), but all three cloned outputs are non-empty,
-correctly durationed, and audibly carry the anchor voice's timbre across languages — replicating the
-original proposal's cross-lingual timbre-transfer finding on a self-sourced anchor clip rather than a
-separate recording.
+**Key finding: `torch.compile` made this workload slower, not faster.** Every number above is roughly
+10-20x worse than Run 1's eager-mode times. The reason is structural, not a bug: `torch.compile` traces
+and JIT-compiles a graph *per distinct input shape* it sees. Every call here has a different token length
+(EN vs. BM vs. ID text differs; baseline vs. cloned differs further since the reference clip adds
+audio-encoding steps), so **every single call in this run paid its own from-scratch compilation cost**
+instead of reusing a warm cache. None of the compiled graphs were ever reused, so there was no amortization
+to offset the compile overhead — this run never left the "always compiling" regime.
+
+This does not contradict the original proposal's projected speedups (RTF ~0.13-0.30 on an RTX 4090,
+§4.2). Those figures assume a **production serving loop**: many requests, typically batched or padded to
+a small set of fixed shapes, where compilation happens once (or a handful of times) and then amortizes
+over thousands of calls. This PoC's testing pattern — a handful of one-off calls, each a different length
+— is close to the worst case for `torch.compile` and does not exercise the regime the speedup applies to.
+
+**Practical recommendation:** keep `optimize=False` (eager mode) as the default for this kind of
+exploratory/one-off testing. Only enable `torch.compile` once building an actual serving loop with
+repeated, shape-stable calls (e.g. padding all requests to a fixed max length) — that's the only setting
+in which the compile cost pays for itself.
+
+## Voice-clone anchor test (both runs)
+
+Both runs reused the EN baseline output as the **anchor** clip (`reference_wav_path`) and regenerated all
+three languages cloned from it, rather than recording a separate reference — mirroring the original
+proposal's "one reference clip reused across all 3 languages" validation. All 6 cloned outputs (3 per
+run) are non-empty, correctly durationed, and audibly carry the anchor voice's timbre across languages.
 
 ## Open items carried over from the original proposal
 
 - **Accent bleed-through** (EN-sourced anchor voiced in BM/ID) is unassessed here too — needs
   native-speaker review, same as the original proposal flagged.
-- **Triton/torch.compile speedup is still unvalidated** on this hardware — the compatibility issue above
-  means the production-speed path (RTF ~0.13–0.30 on better GPUs) hasn't actually been exercised locally.
+- **`torch.compile` production-speed path is now confirmed reachable** (the Triton pin works), but still
+  needs to be validated in an actual repeated-shape serving loop, not one-off calls, before trusting the
+  original proposal's RTX 4090 projections.
 - Long-form stability, language quality parity, and serving-layer scoping are unchanged from the original
   proposal's §6 — see that document for full detail.

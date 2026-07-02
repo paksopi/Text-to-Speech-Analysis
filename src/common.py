@@ -7,15 +7,28 @@ ROOT = Path(__file__).resolve().parent.parent
 AUDIO_DIR = ROOT / "results" / "audio"
 LOG_DIR = ROOT / "results" / "logs"
 
-CONTROL = "calm, articulate, reflective"
+CONTROL = (
+    "A calm, articulate female voice in her early-20s. Her tone is grounded and "
+    "reflective, carrying a sense of 'warm precision'. Deliberate pauses are used "
+    "between ideas to give the listener space to think, maintaining a patient, "
+    "unhurried pace."
+)
 
 TEST_SENTENCES = {
-    "en": "Every skill you build today becomes the foundation for tomorrow's confidence, "
-    "so keep practicing with patience and curiosity.",
-    "bm": "Setiap kemahiran yang anda bina hari ini menjadi asas kepada keyakinan esok, "
-    "jadi teruskan berlatih dengan sabar dan rasa ingin tahu.",
-    "id": "Setiap keterampilan yang kamu bangun hari ini menjadi dasar bagi kepercayaan diri esok, "
-    "jadi teruslah berlatih dengan sabar dan rasa ingin tahu.",
+    "en": "Great, I love that question! So we know that sunlight is important for "
+    "photosynthesis — but let's think a little deeper. Think of a plant as a little "
+    "factory — light is the energy that comes in. Now, what do you think a plant does "
+    "with that energy? What do plants need to survive and grow?",
+    "bm": "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting "
+    "untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan "
+    "tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, "
+    "apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan "
+    "perlukan untuk hidup dan membesar?",
+    "id": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting "
+    "untuk fotosintesis — tapi mari kita berpikir lebih dalam. Bayangkan tumbuhan "
+    "sebagai sebuah pabrik kecil — cahaya adalah energi yang masuk. Sekarang, menurutmu "
+    "apa yang dilakukan tumbuhan dengan energi itu? Apa yang dibutuhkan tumbuhan untuk "
+    "bertahan hidup dan tumbuh?",
 }
 
 

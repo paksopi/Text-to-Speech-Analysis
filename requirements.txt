@@ -132,7 +132,7 @@ torchaudio==2.6.0+cu124
 torchcodec==0.14.0
 tqdm==4.68.3
 transformers==5.12.1
-triton-windows==3.7.1.post27
+triton-windows==3.2.0.post21
 typeguard==4.5.2
 typer==0.25.1
 typing-inspection==0.4.2
