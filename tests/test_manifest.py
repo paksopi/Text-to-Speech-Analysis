@@ -48,6 +48,10 @@ def test_voxcpm2_entries_use_the_mentor_sentences():
 
 
 def test_non_voxcpm2_entries_use_the_short_sentences():
+    # mms_tts/ms is the one exception: SHORT_SENTENCES has no "ms" entry, so
+    # run_mms_tts.py generates that clip from the full BM mentor sentence instead.
     for _path, model, lang, expected_text, _is_cloned, _anchor in MANIFEST:
-        if model != "voxcpm2":
+        if model == "mms_tts" and lang == "ms":
+            assert expected_text == MENTOR_SENTENCES["bm"]
+        elif model != "voxcpm2":
             assert expected_text == SHORT_SENTENCES[lang]

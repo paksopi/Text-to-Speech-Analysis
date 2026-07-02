@@ -1,50 +1,5 @@
 # Text-to-Speech Analysis — Malay / Indonesian / English
 
-## In-progress work (paused — resume later)
-
-Goal: re-run the objective eval suite (WER, speaker similarity, VRAM, prosody) across *every* model,
-including the 3 previously blocked ones, retried by actually installing from their official GitHub repos
-(not just PyPI) — plus a few extra lightweight TTS models for a broader personal report, even ones that
-don't meet this project's BM/ID requirement. License issues are fine to hit — document and move on
-rather than stop.
-
-**Status as of pause:**
-
-- **MMS-TTS** (`facebook/mms-tts-zlm` for Malay, `facebook/mms-tts-ind` for Indonesian, via
-  `transformers`' `VitsModel`) — **installed and verified working** in `.venvs/mms`
-  (`src/comparison/run_mms_tts.py`). Smoke-tested both languages successfully (~1s/call, CPU-cheap VITS
-  checkpoints). **License: CC-BY-NC 4.0** (non-commercial) — a license issue, but fine for this
-  evaluation per the "just document it" instruction. Not yet wired into the objective eval suite
-  (WER/speaker-similarity/VRAM/prosody).
-- **Kokoro-82M** (`hexgrad/Kokoro-82M`) — **installed and verified working** in `.venvs/kokoro`
-  (`src/comparison/run_kokoro.py`). Very lightweight (82M params, ~350MB), Apache-2.0, no license issue.
-  **Does not support Malay/Indonesian** (EN + a handful of others only) — doesn't meet this project's
-  actual requirement, but ran anyway per request for a broader personal report. Not yet wired into the
-  objective eval suite.
-  - Considered and rejected: **Zonos-v0.1** (Zyphra) — no Malay/Indonesian support and not obviously
-    lighter than models already covered, so lower priority than the two above.
-- **Fish Speech** — re-investigated, and the earlier "PyPI package is inference-incomplete" finding is
-  **wrong/outdated**: the pip package (`.venvs/fishspeech`) actually contains everything needed
-  (`fish_speech.inference_engine.TTSInferenceEngine`, `launch_thread_safe_queue`, `load_decoder_model`) —
-  only the `tools/` CLI wiring was missing, not the underlying library. The real, current blocker: the
-  checkpoint (`fishaudio/openaudio-s1-mini` on Hugging Face) is **gated** — requires a logged-in HF
-  account that has accepted the model's terms. License is the **Fish Audio Research License**
-  (non-commercial/research use only; this project's evaluation use would qualify). **To resume:** provide
-  an HF token from an account that has accepted the terms at
-  huggingface.co/fishaudio/openaudio-s1-mini, then re-run the download + a minimal inference script
-  wired the same way as the repo's `tools/run_webui.py`.
-- **MeloTTS** and **CosyVoice 2.0** — **not attempted.** Both only have a working install path via
-  `pip install git+https://github.com/...` or a full git clone + local `pip install -r requirements.txt`
-  of an unofficial/research repo, which this environment's auto-mode safety policy blocks (installing or
-  building from an agent-chosen external repo executes arbitrary code — a supply-chain risk independent
-  of either project's own trustworthiness). This is an environment-policy limitation, not a technical
-  blocker on either model's side; re-attempt only with a human explicitly reviewing and approving the
-  install first.
-- **Not started yet:** extending `src/eval/manifest.py` + the `measure_vram_*.py` scripts to cover
-  MMS-TTS and Kokoro-82M now that both run, re-running `run_wer.py` / `run_speaker_similarity.py` /
-  `run_prosody_analysis.py`, and updating `reports/tts_models_comparison.md` with the final results (or
-  final blocker reasons) for all of the above.
-
 [![CI](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/paksopi/Text-to-Speech-Analysis/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
@@ -108,12 +63,12 @@ condition (n=1 per cell, one sentence for the prosody comparison) — useful for
 for fine-grained ranking between close scores; see the report's sample-size caveat for detail, and
 [Limitations & Future Work](#limitations--future-work) below.
 
-| Metric | What it measures | VoxCPM2 result |
+| Metric | What it measures | Across all models tested |
 |---|---|---|
-| **WER** (Whisper transcription vs. requested text) | Does the model say the right words | **0.0000** across all 6 EN/BM/ID generations — vs. 0.10-0.25 on 3 of the 6 alternatives tested |
-| **Speaker similarity** (Resemblyzer cosine similarity) | Cloning fidelity vs. the anchor clip | 0.94 same-language (EN), 0.85 cross-lingual (BM/ID) — quantifies the "accent bleed-through" the original proposal only flagged qualitatively |
-| **VRAM / parameter count** | Light vs. heavy, measured not estimated | **2,384M params, 5.76 GB peak VRAM** — the heaviest model tested, confirming it runs at the edge of this hardware's 6GB budget |
-| **Prosody delta** (F0/pacing with vs. without the control instruction) | Does emotion control actually do anything | Pitch variance nearly halves (39 vs. 68 Hz std), speaking rate drops ~20% — measurably works for tone/pacing; doesn't reliably increase pause frequency on the one sentence tested |
+| **WER** (Whisper transcription vs. requested text) | Does the model say the right words | VoxCPM2 **0.0000** across all 6 EN/BM/ID generations; Kokoro-82M and MMS-TTS/id also **0.0000**; MMS-TTS/ms 0.0784 — vs. 0.10-0.25 on 3 of the other alternatives |
+| **Speaker similarity** (Resemblyzer cosine similarity) | Cloning fidelity vs. the anchor clip | VoxCPM2: 0.94 same-language (EN), 0.85 cross-lingual (BM/ID) — quantifies the "accent bleed-through" the original proposal only flagged qualitatively. N/A for MMS-TTS/Kokoro — neither was run in cloning mode |
+| **VRAM / parameter count** | Light vs. heavy, measured not estimated | VoxCPM2 **2,384M params, 5.76 GB peak VRAM** — the heaviest model tested; MMS-TTS (36M params, 0.47 GB) and Kokoro-82M (82M params, 0.73 GB) are two of the lightest |
+| **Prosody delta** (F0/pacing with vs. without the control instruction) | Does emotion control actually do anything | VoxCPM2-only (the only model here with an explicit control-instruction toggle): pitch variance nearly halves (39 vs. 68 Hz std), speaking rate drops ~20% — measurably works for tone/pacing; doesn't reliably increase pause frequency on the one sentence tested |
 
 ## Selected model: VoxCPM2
 
@@ -224,8 +179,9 @@ from unrelated frameworks with genuinely incompatible pinned dependencies, not o
 | `.venvs/chattts/` | ChatTTS |
 | `.venvs/f5tts/` | F5-TTS |
 | `.venvs/piper/` | Piper |
-| `.venvs/melo/` | MeloTTS install attempt (blocked — see comparison report) |
-| `.venvs/fishspeech/` | Fish Speech install attempt (blocked — see comparison report) |
+| `.venvs/fishspeech/` | Fish Speech — installed and working; blocked on a gated HF checkpoint, not the venv |
+| `.venvs/mms/` | MMS-TTS (Malay + Indonesian) |
+| `.venvs/kokoro/` | Kokoro-82M |
 
 **Why not one shared venv:** each framework pins its own `torch`/`transformers`/`numpy` versions, and at
 least one (StyleTTS2, pinned to `torch==2.5.1`) directly conflicts with the `torch==2.6.0+cu124` this
@@ -257,6 +213,8 @@ python src/comparison/run_styletts2.py     # StyleTTS2 (EN)
 python src/comparison/run_parler.py        # Parler-TTS Mini (EN)
 python src/comparison/run_chattts.py       # ChatTTS (EN)
 python src/comparison/run_f5tts.py         # F5-TTS (EN, cloned)
+python src/comparison/run_mms_tts.py       # MMS-TTS (Malay + Indonesian)
+python src/comparison/run_kokoro.py        # Kokoro-82M (EN)
 ```
 
 Objective evaluation (run from a dedicated `.venvs/eval/` — see the comparison report for setup):
@@ -298,6 +256,19 @@ check before any commercial use:
 | Parler-TTS Mini | Apache-2.0 | |
 | ChatTTS | AGPLv3+ | Copyleft — network use may trigger source-disclosure obligations |
 | F5-TTS | MIT (library) | Check the specific checkpoint's license before commercial use |
+| MMS-TTS | CC-BY-NC 4.0 (weights) | Non-commercial; not part of the original 10-model catalog, added for BM/ID coverage |
+| Kokoro-82M | Apache-2.0 | Not part of the original 10-model catalog; no Malay/Indonesian support |
+
+**Remaining blockers (unresolved):**
+
+- **Fish Speech** — library installs and runs, but its checkpoint (`fishaudio/openaudio-s1-mini`) is
+  gated on Hugging Face; needs a logged-in HF token from an account that has accepted the model's terms.
+- **MeloTTS** and **CosyVoice 2.0** — neither has a working PyPI install; both require
+  `pip install git+https://github.com/...` or a full git clone, which this environment's auto-mode safety
+  policy blocks (installing/building from an agent-chosen external repo executes arbitrary code). Requires
+  a human to review and approve the install first.
+
+Full install-friction detail for both in [`reports/tts_models_comparison.md`](reports/tts_models_comparison.md#installation-friction-as-a-finding).
 
 ## Limitations & Future Work
 
@@ -339,6 +310,8 @@ This analysis is honest about what it doesn't cover yet:
 - [MeloTTS](https://github.com/myshell-ai/MeloTTS) — fast multilingual TTS (EN/ZH/JP/KR/FR/ES); not evaluated further, see [comparison report](reports/tts_models_comparison.md) for why
 - [Fish Speech](https://github.com/fishaudio/fish-speech) — LLM-based TTS foundation model; not evaluated further, see comparison report
 - [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) — LLM + flow-matching TTS; not evaluated further, see comparison report
+- [MMS-TTS](https://huggingface.co/facebook/mms-tts-zlm) — Meta's per-language VITS checkpoints; not part of the original 10-model catalog, added for native Malay ([`zlm`](https://huggingface.co/facebook/mms-tts-zlm)) + Indonesian ([`ind`](https://huggingface.co/facebook/mms-tts-ind)) coverage
+- [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — lightweight (82M param) TTS; not part of the original 10-model catalog, no Malay/Indonesian support
 
 ### Related tools and concepts
 

@@ -77,7 +77,7 @@
     "lang": "en",
     "cloned": false,
     "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
-    "transcription": "Great. I love that question. So we know that sunlight is important for photosynthesis. But let's think a little deeper.",
+    "transcription": "Great. I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
     "wer": 0.0
   },
   {
@@ -86,7 +86,7 @@
     "lang": "en",
     "cloned": true,
     "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
-    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great. I love that question. So we know that sunlight is important for photosynthesis. But let's think a little deeper.",
     "wer": 0.0
   },
   {
@@ -95,8 +95,8 @@
     "lang": "en",
     "cloned": false,
     "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
-    "transcription": "Great eye love that question so we know that sun light is important for photosynthesis, but let's think a little deeper",
-    "wer": 0.15
+    "transcription": "Elizabeth trauma",
+    "wer": 1.0
   },
   {
     "file": "parler_en.wav",
@@ -113,8 +113,8 @@
     "lang": "en",
     "cloned": false,
     "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
-    "transcription": "Great. I love that question. So we know that sunlight is really important for photosynthesis. Let's think a little deeper.",
-    "wer": 0.1
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "wer": 0.0
   },
   {
     "file": "f5tts_en.wav",
@@ -122,7 +122,34 @@
     "lang": "en",
     "cloned": true,
     "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
-    "transcription": "Lovely question. And so we know that sunlight is important for photosynthesis. But let's think a little deeper.",
-    "wer": 0.25
+    "transcription": "Pizz and curiosity? Great, I love that question. So we know that sunlight is important for photosynthesis? Frecklesmpa, let's think a little deeper.",
+    "wer": 0.2
+  },
+  {
+    "file": "mms_tts_ms.wav",
+    "model": "mms_tts",
+    "lang": "ms",
+    "cloned": false,
+    "expected_text": "Bagus, saya suka soalan itu! Jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis — tetapi mari kita fikir dengan lebih mendalam. Bayangkan tumbuhan sebagai sebuah kilang kecil — cahaya ialah tenaga yang masuk. Sekarang, apa pula yang anda fikir tumbuhan lakukan dengan tenaga itu? Apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "transcription": "Bangus saya suka soalan itu, jadi kita tahu bahawa cahaya matahari penting untuk fotosintesis. Tetapi mari kita fikir dengan lebih mendalam bayangkan tumbuhan. Sebagai sebuah kilang kecil, cahaya ialah tenaga yang masuk sekarang. Apapular yang Ana fikir, tumbuhan lakukan. Dengan tenaga itu, apakah yang tumbuhan perlukan untuk hidup dan membesar?",
+    "wer": 0.0784
+  },
+  {
+    "file": "mms_tts_id.wav",
+    "model": "mms_tts",
+    "lang": "id",
+    "cloned": false,
+    "expected_text": "Bagus, aku suka pertanyaan itu! Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam.",
+    "transcription": "Bagus, aku suka pertanyaan itu. Jadi kita tahu bahwa sinar matahari penting untuk fotosintesis, tapi mari kita berpikir lebih dalam.",
+    "wer": 0.0
+  },
+  {
+    "file": "kokoro_en.wav",
+    "model": "kokoro",
+    "lang": "en",
+    "cloned": false,
+    "expected_text": "Great, I love that question! So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "transcription": "Great, I love that question. So we know that sunlight is important for photosynthesis, but let's think a little deeper.",
+    "wer": 0.0
   }
 ]

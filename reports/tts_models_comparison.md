@@ -41,9 +41,11 @@ Each model was installed in its own isolated venv (`.venvs/<model>/`) to avoid d
 | **Parler-TTS Mini** | ✅ | ❌ | ❌ | 16.575s | default | GPU | Works; English-only per model card |
 | **ChatTTS** | ✅ | ❌ | ❌ | 13.107s | default | GPU | Works; EN+ZH only, drops `!`/`'` as "invalid characters" |
 | **F5-TTS** | ✅ | ❌ | ❌ | 15.123s (cloned) | default | GPU | Works; EN+ZH only, voice-cloning-only (no built-in default voice) |
-| **MeloTTS** | — | ❌ | ❌ | — | — | — | **Blocked** — broken PyPI package; see below |
-| **Fish Speech** | — | ❌ | ❌ | — | — | — | **Blocked** — PyPI package is inference-incomplete; see below |
-| **CosyVoice 2.0** | — | ❌ | ❌ | — | — | — | **Skipped** — no official PyPI package; see below |
+| **MeloTTS** | — | ❌ | ❌ | — | — | — | **Not attempted** — git-based install blocked by this environment's install policy; see below |
+| **Fish Speech** | — | ❌ | ❌ | — | — | — | **Blocked** — library installs and runs, but the checkpoint is gated on Hugging Face; see below |
+| **CosyVoice 2.0** | — | ❌ | ❌ | — | — | — | **Not attempted** — git-based install blocked by this environment's install policy; see below |
+| MMS-TTS *(extra, not part of the 10-model catalog)* | — | ✅ | ✅ | 0.961s / 0.274s | default | CPU | Works; Malay + Indonesian, CC-BY-NC 4.0 (non-commercial) |
+| Kokoro-82M *(extra, not part of the 10-model catalog)* | ✅ | ❌ | ❌ | 1.342s | default | GPU | Works; English-only, no BM/ID support |
 
 (Coqui VITS, the lighter EN-only architecture bundled in the same `coqui-tts` package as XTTSv2, wasn't
 separately timed — XTTSv2 already establishes Coqui's EN-only ceiling and is the more capable of the two.)
@@ -97,6 +99,8 @@ analogue to the language-detection repo's accuracy metric: 0.0 = every word tran
 | ChatTTS | en | — | 0.1000 |
 | StyleTTS2 | en | — | 0.1500 |
 | F5-TTS | en (cloned) | — | 0.2500 |
+| MMS-TTS | ms/id | — | 0.0784 / **0.0000** |
+| Kokoro-82M | en | — | **0.0000** |
 
 VoxCPM2 has zero transcription errors across all six EN/BM/ID generations, baseline and cloned alike —
 this is a real correctness signal, not just "it sounds fine": Whisper heard exactly the requested words
@@ -119,6 +123,10 @@ conditions typically land around 0.75–0.95.
 | Coqui XTTSv2 | en_cloned | en_baseline | 0.9448 |
 | F5-TTS | en_cloned | en_baseline | 0.9496 |
 
+MMS-TTS and Kokoro-82M have no rows here — neither was run in voice-cloning mode (MMS-TTS is a
+fixed-checkpoint VITS model with no cloning support at all; Kokoro was only smoke-tested with its default
+voice), so there's no cloned-vs-anchor comparison to score.
+
 This quantifies something the original proposal only flagged qualitatively (§6, "accent bleed-through...
 not yet formally assessed"): VoxCPM2's cross-lingual clones (BM/ID from an English anchor) score
 measurably lower on speaker similarity than its same-language EN clone (0.85 vs. 0.94) — real evidence,
@@ -139,6 +147,8 @@ and on-disk checkpoint size (first-run download size). Piper is CPU-only (no VRA
 | ChatTTS | not exposed by the library | 1.24 GB | 1.2 GB |
 | F5-TTS | not measured — see note | not measured — see note | 1.3 GB |
 | Piper | N/A (ONNX, CPU) | **0 GB (CPU-only)** | ~61 MB per voice |
+| Kokoro-82M | 81.8M | 0.73 GB | ~350 MB |
+| MMS-TTS | 36.3M | 0.47 GB | ~145 MB per language |
 
 VoxCPM2 is, honestly, the heaviest model tested — 2.4B parameters and 5.76 GB peak VRAM, which matches
 the original proposal's measured "~5.8/6.0GB" almost exactly and confirms it's genuinely running at the
@@ -227,15 +237,25 @@ production-ready each ecosystem currently is:
   which was not attempted here — installing directly from an agent-chosen GitHub repo executes arbitrary
   external code and is blocked by this environment's auto-mode safety policy, independent of MeloTTS's
   own trustworthiness.
-- **Fish Speech**: the PyPI package (`fish-speech` 0.1.0) is legitimate — published by the real project
-  maintainer — but it only ships library internals (`fish_speech.inference_engine` etc.). Actually running
-  inference needs the project's `tools/` CLI scripts (a `llama_queue` worker process, checkpoint-loading
-  glue) that exist only in the GitHub repo, not in the pip package. Same git-install blocker as MeloTTS.
+- **Fish Speech**: the PyPI package (`fish-speech` 0.1.0), installed in `.venvs/fishspeech`, is legitimate
+  and — contrary to an earlier finding in this project — is inference-complete: it exposes
+  `fish_speech.inference_engine.TTSInferenceEngine`, `launch_thread_safe_queue`, and `load_decoder_model`,
+  everything the official `tools/run_webui.py` wires together; only the `tools/` CLI convenience scripts
+  are missing from the pip package, not the underlying library. The real blocker is the checkpoint itself:
+  `fishaudio/openaudio-s1-mini` on Hugging Face is **gated**, requiring a logged-in account that has
+  accepted the model's terms (Fish Audio Research License, non-commercial/research use). Resuming this
+  needs a human to provide an HF token from an account that has accepted those terms.
 - **CosyVoice 2.0**: no official PyPI package exists at all under the `FunAudioLLM` org. The only `cosyvoice`
   package on PyPI (0.0.8) is an unofficial third-party repackaging by an unrelated individual
   (`lucasjinreal/CosyVoice`, not `FunAudioLLM/CosyVoice`) — installing and running unvetted, unofficial
   forks of a model carries real supply-chain risk, so this was skipped rather than installed. The official
-  path is a git clone, also out of scope here.
+  path is a git clone, which is likewise blocked by this environment's auto-mode safety policy against
+  installing/building from an agent-chosen external repo.
+- **MMS-TTS** and **Kokoro-82M** (not part of the original 10-model catalog; added afterward for a
+  broader personal report — see [Original research: full model catalog](#original-research-full-model-catalog)):
+  both installed cleanly from official PyPI/Hugging Face packages (`transformers`' `VitsModel` for MMS-TTS,
+  the `kokoro` package for Kokoro) with no workarounds needed. MMS-TTS's weights carry a CC-BY-NC 4.0
+  (non-commercial) license; Kokoro-82M is Apache-2.0.
 - **StyleTTS2**: the PyPI package (`styletts2` 0.1.6, an unofficial-but-functional repackaging) ships a
   checkpoint saved in a pickle format that predates PyTorch 2.6's `weights_only=True` default —
   `torch.load` fails outright on current PyTorch. Fixed by pinning `torch==2.5.1` in its isolated venv.

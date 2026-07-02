@@ -47,4 +47,7 @@ MANIFEST = [
         True,
         AUDIO_DIR / "en_baseline.wav",
     ),
+    (COMPARISON_DIR / "mms_tts_ms.wav", "mms_tts", "ms", TEXT_BM_MENTOR, False, None),
+    (COMPARISON_DIR / "mms_tts_id.wav", "mms_tts", "id", TEXT_ID_SHORT, False, None),
+    (COMPARISON_DIR / "kokoro_en.wav", "kokoro", "en", TEXT_EN_SHORT, False, None),
 ]
