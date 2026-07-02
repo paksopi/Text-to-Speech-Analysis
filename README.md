@@ -6,7 +6,16 @@ synthesis with zero-shot voice cloning.
 
 Full infrastructure/feasibility writeup: [`reports/VoxCPM2_PoC_Infrastructure_Proposal.md`](reports/VoxCPM2_PoC_Infrastructure_Proposal.md).
 Rerun results after the original PoC was lost and rebuilt: [`reports/poc_rerun_results.md`](reports/poc_rerun_results.md).
-Survey of alternative open-source TTS models for the 6GB VRAM constraint: [`reports/tts_models_comparison.md`](reports/tts_models_comparison.md).
+Measured comparison against 9 alternative open-source TTS models: [`reports/tts_models_comparison.md`](reports/tts_models_comparison.md).
+
+## Why VoxCPM2
+
+9 alternative open-source TTS models (Piper, Coqui XTTSv2, StyleTTS2, Parler-TTS Mini, ChatTTS, F5-TTS,
+MeloTTS, Fish Speech, CosyVoice 2.0) were installed and tested on the same hardware for comparison.
+**VoxCPM2 is the only one with native Malay support**, and one of only two (with Piper) supporting
+Indonesian — every other model tops out at English, or English+Chinese. 3 of the 9 alternatives (MeloTTS,
+Fish Speech, CosyVoice) couldn't even be installed cleanly (broken/incomplete PyPI packages, or no
+official package at all). Full measured timings and install notes in the comparison report above.
 
 ## Results
 
